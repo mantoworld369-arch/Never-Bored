@@ -1,12 +1,9 @@
 const express = require("express");
-const Anthropic = require("@anthropic-ai/sdk");
 const path = require("path");
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const SYSTEM_PROMPT = `You are a topic generator for a curiosity app. Generate exactly 20 unique, fascinating topics spanning all human knowledge — science, history, nature, culture, philosophy, food, mathematics, technology, art, language, psychology, space, and more.
 
@@ -32,20 +29,35 @@ app.post("/api/topics", async (req, res) => {
     : "Generate 20 fascinating topics from across all domains of human knowledge.";
 
   try {
-    const message = await client.messages.create({
-      model: "claude-opus-4-5",
-      max_tokens: 8000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.RAILWAY_STATIC_URL || "https://never-bored.app",
+        "X-Title": "Never Bored"
+      },
+      body: JSON.stringify({
+        model: "meta-llama/llama-3.3-70b-instruct:free",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: userPrompt }
+        ],
+        max_tokens: 8000,
+        temperature: 1.0
+      })
     });
 
-    const raw = message.content
-      .map((b) => b.text || "")
-      .join("")
-      .replace(/```json|```/g, "")
-      .trim();
+    const data = await response.json();
 
-    const topics = JSON.parse(raw);
+    if (!response.ok) {
+      console.error("OpenRouter error:", data);
+      return res.status(500).json({ error: data.error?.message || "OpenRouter error" });
+    }
+
+    const raw = data.choices?.[0]?.message?.content || "";
+    const clean = raw.replace(/```json|```/g, "").trim();
+    const topics = JSON.parse(clean);
 
     if (!Array.isArray(topics) || topics.length === 0) {
       throw new Error("Invalid topics format");
