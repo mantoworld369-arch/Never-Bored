@@ -24,11 +24,22 @@ function nextKey(keys) {
 const MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
   "meta-llama/llama-3.1-8b-instruct:free",
+  "meta-llama/llama-4-scout:free",
   "google/gemma-3-27b-it:free",
   "google/gemma-3-12b-it:free",
+  "google/gemma-3-4b-it:free",
   "mistralai/mistral-7b-instruct:free",
-  "qwen/qwen3-8b:free"
+  "mistralai/devstral-small:free",
+  "qwen/qwen3-8b:free",
+  "qwen/qwen3-14b:free",
+  "qwen/qwen2.5-7b-instruct:free",
+  "deepseek/deepseek-r1-distill-llama-70b:free",
+  "deepseek/deepseek-chat-v3-0324:free",
+  "nvidia/llama-3.1-nemotron-nano-8b-v1:free",
+  "microsoft/phi-4-reasoning-plus:free"
 ].filter(m => !/claude|anthropic/i.test(m));
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const TOPIC_SYSTEM = [
   "You are a topic generator for a curiosity app called Never Bored.",
@@ -88,7 +99,9 @@ async function callOpenRouter(messages, maxTokens, stream, res) {
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
-          console.warn(model, "http error:", errData.error && errData.error.message);
+          console.warn(model, "http error:", response.status, errData.error && errData.error.message);
+          // back off briefly on rate limit
+          if (response.status === 429) await sleep(600);
           continue;
         }
 
