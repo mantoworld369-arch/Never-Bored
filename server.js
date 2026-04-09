@@ -5,18 +5,18 @@ app.use(express.json());
 
 const SYSTEM_PROMPT = [
   "You are a topic generator for a curiosity app.",
-  "Generate exactly the number of topics requested, spanning all human knowledge:",
-  "science, history, nature, culture, philosophy, food, math, technology, art, language, psychology, space.",
+  "Generate exactly the number of topics requested. Topics can be about absolutely anything fascinating in the world:",
+  "science, history, nature, culture, philosophy, food, math, technology, art, language, psychology, space, crime, sports, music, film, fashion, architecture, mythology, religion, economics, medicine, animals, geography, internet culture, unsolved mysteries, weird facts, extreme sports, subcultures — anything that makes someone want to keep exploring.",
   "Avoid any topics from the exclusion list provided.",
   "Respond ONLY with a valid JSON array. No markdown, no backticks, no explanation.",
   "Each object must have: category, title_en, title_zh, summary_en, summary_zh, fun_en, fun_zh, search.",
   "category: one lowercase word.",
   "title_en: topic name in English (3-6 words).",
-  "title_zh: Traditional Chinese title.",
+  "title_zh: Simplified Chinese title.",
   "summary_en: 2-3 sentence summary in English.",
-  "summary_zh: 2-3 sentence summary in Traditional Chinese.",
+  "summary_zh: 2-3 sentence summary in Simplified Chinese.",
   "fun_en: one sentence on why this is fascinating, in English.",
-  "fun_zh: one sentence in Traditional Chinese on why this is fascinating.",
+  "fun_zh: one sentence in Simplified Chinese on why this is fascinating.",
   "search: best YouTube search query for this topic."
 ].join(" ");
 
@@ -49,9 +49,9 @@ app.post("/api/topics", async (req, res) => {
     // Free model fallback chain — tries each until one works
     const MODELS = [
       "meta-llama/llama-3.3-70b-instruct:free",
-      "google/gemma-3-27b-it:free",
+      "google/gemma-3-12b-it:free",
       "mistralai/mistral-7b-instruct:free",
-      "qwen/qwen3-8b:free"
+      "deepseek/deepseek-r1-zero:free"
     ];
 
     let topics = null;
