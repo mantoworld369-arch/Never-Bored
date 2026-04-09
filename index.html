@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>never bored</title>
+<link rel="icon" type="image/png" href="/logo.png"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -102,6 +103,21 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#aaa;border:0.5px solid #2e2e2e;padding:9px 22px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:100}
 
 @media(max-width:520px){body{padding:1.5rem .75rem 5rem}.topic-title-en{font-size:19px}}
+
+/* TITLE on bored screen */
+.app-title{font-size:28px;font-weight:500;color:#e0e0e0;letter-spacing:-.01em;margin-bottom:2px}
+.app-subtitle{font-size:11px;color:#333;letter-spacing:.04em;margin-bottom:2rem}
+
+/* LOGO watermark — fixed bottom-right, visible on all screens */
+#logo-mark{
+  position:fixed;bottom:20px;right:20px;
+  width:32px;height:32px;
+  opacity:.18;
+  transition:opacity .2s;
+  z-index:50;
+  filter:invert(1);
+}
+#logo-mark:hover{opacity:.4}
 </style>
 </head>
 <body>
@@ -109,6 +125,8 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 
   <!-- BORED -->
   <div id="bored-screen" class="screen active">
+    <div class="app-title">Never Bored</div>
+    <div class="app-subtitle">for bb虾</div>
     <button class="bored-btn" id="bored-btn">i'm bored</button>
     <span class="bored-hint">discover something new</span>
   </div>
@@ -178,6 +196,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
   </div>
 
 </div>
+<img id="logo-mark" src="/logo.png" alt=""/>
 <div id="toast"></div>
 
 <script>
