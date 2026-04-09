@@ -99,14 +99,15 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
   display:none;
   opacity:0;
   pointer-events:none;
-  position:fixed;left:0;top:50%;transform:translateY(-50%);
+  position:fixed;
   z-index:70;
   background:#161616;border:0.5px solid var(--border);
-  border-left:none;border-radius:0 8px 8px 0;
-  padding:14px 10px;cursor:pointer;
-  writing-mode:vertical-lr;font-size:11px;color:#555;
-  letter-spacing:.05em;
+  border-radius:999px;
+  padding:10px 18px;cursor:pointer;
+  font-size:12px;color:#555;
+  letter-spacing:.04em;
   transition:opacity .2s;
+  font-family:inherit;
 }
 #cat-backdrop{
   display:none;position:fixed;inset:0;z-index:140;
@@ -239,10 +240,35 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 
 /* ── RESPONSIVE ── */
 @media(max-width:680px){
-  #cat-sidebar{display:none}
-  #cat-toggle{display:block}
-  #main-content{padding:1.5rem .75rem 5rem}
-  .topic-title-en{font-size:19px}
+  /* Sidebar completely gone on mobile */
+  #cat-sidebar{display:none !important;width:0}
+
+  /* Categories button: floating pill, bottom-right, hidden until start() */
+  #cat-toggle{
+    display:block;
+    position:fixed;bottom:28px;right:16px;top:auto;left:auto;
+    transform:none;
+    writing-mode:horizontal-tb;
+    font-size:12px;padding:10px 18px;
+    border-radius:999px;border:0.5px solid #333;
+    background:#161616;color:#666;
+    letter-spacing:.04em;
+    z-index:70;
+  }
+
+  /* Main content full width, comfortable padding */
+  #main-content{padding:1rem 1rem 5rem}
+
+  /* Scale down text for mobile readability */
+  .topic-title-en{font-size:18px}
+  .summary-en{font-size:13px;line-height:1.75}
+  .summary-zh{font-size:12px}
+  .topic-card{padding:1.25rem 1.25rem 1.5rem}
+
+  /* Action buttons bigger tap targets */
+  .action-btn{padding:13px 0;font-size:13px}
+  .next-btn{padding:14px}
+
   .app-title{font-size:28px}
 }
 @media(min-width:681px){
