@@ -18,6 +18,24 @@ Respond ONLY with a valid JSON array of 20 objects. No markdown, no backticks, n
   "search": "best YouTube search query for this topic"
 }`;
 
+// Debug endpoint — visit /api/debug in browser to check config
+app.get("/api/debug", async (req, res) => {
+  const keySet = !!process.env.OPENROUTER_API_KEY;
+  const keyPreview = keySet ? process.env.OPENROUTER_API_KEY.slice(0, 14) + "..." : "NOT SET";
+  let openrouterOk = false;
+  let openrouterErr = null;
+  try {
+    const r = await fetch("https://openrouter.ai/api/v1/models", {
+      headers: { "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}` }
+    });
+    openrouterOk = r.ok;
+    if (!r.ok) openrouterErr = await r.text();
+  } catch (e) {
+    openrouterErr = e.message;
+  }
+  res.json({ keySet, keyPreview, openrouterOk, openrouterErr });
+});
+
 app.post("/api/topics", async (req, res) => {
   const { exclude = [] } = req.body;
   const userPrompt = exclude.length
@@ -25,6 +43,8 @@ app.post("/api/topics", async (req, res) => {
     : "Generate 20 fascinating topics from across all domains of human knowledge.";
 
   try {
+    console.log("Calling OpenRouter, key set:", !!process.env.OPENROUTER_API_KEY);
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -45,19 +65,25 @@ app.post("/api/topics", async (req, res) => {
     });
 
     const data = await response.json();
+    console.log("OpenRouter status:", response.status);
+
     if (!response.ok) {
-      console.error("OpenRouter error:", data);
-      return res.status(500).json({ error: data.error?.message || "OpenRouter error" });
+      console.error("OpenRouter error body:", JSON.stringify(data));
+      return res.status(500).json({ error: `OpenRouter ${response.status}: ${data.error?.message || JSON.stringify(data)}` });
     }
 
     const raw = data.choices?.[0]?.message?.content || "";
+    console.log("Raw response length:", raw.length);
+
     const clean = raw.replace(/```json|```/g, "").trim();
     const topics = JSON.parse(clean);
-    if (!Array.isArray(topics) || topics.length === 0) throw new Error("Invalid format");
+
+    if (!Array.isArray(topics) || topics.length === 0) throw new Error("Response was not a valid array");
+    console.log("Topics generated:", topics.length);
     res.json({ topics });
   } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).json({ error: "Failed to generate topics" });
+    console.error("Topic generation error:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -112,6 +138,11 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 .skeleton-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem}
 .skel{background:#1a1a1a;border-radius:4px;margin-bottom:10px;animation:shimmer 1.5s ease-in-out infinite}
 @keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}
+.error-card{background:#140a0a;border:0.5px solid #4a1a1a;border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem}
+.error-title{font-size:13px;color:#c06060;margin-bottom:8px;font-weight:500}
+.error-msg{font-size:12px;color:#885555;line-height:1.6;font-family:monospace;word-break:break-all}
+.retry-btn{margin-top:12px;padding:8px 20px;border-radius:999px;border:0.5px solid #4a1a1a;background:transparent;color:#c06060;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.retry-btn:hover{background:#1e0a0a;border-color:#8a3030}
 .list-empty{font-size:14px;color:var(--text-muted);text-align:center;padding:4rem 0}
 .list-item{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;width:100%;margin-bottom:8px;position:relative}
 .li-title-en{font-size:14px;font-weight:500;color:#d0d0d0;padding-right:28px}
@@ -143,7 +174,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
         <span class="status-tag" id="status-category"></span>
         <span class="status-badge"><span class="dot" id="status-dot"></span><span id="status-text"></span></span>
       </div>
-      <div id="skeleton-card" class="skeleton-card">
+      <div id="skeleton-card" class="skeleton-card" style="display:none">
         <div class="skel" style="height:11px;width:60px"></div>
         <div class="skel" style="height:22px;width:75%;margin-top:8px"></div>
         <div class="skel" style="height:15px;width:45%"></div>
@@ -152,16 +183,23 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
         <div class="skel" style="height:13px;width:90%"></div>
         <div class="skel" style="height:13px;width:80%"></div>
       </div>
+      <div id="error-card" class="error-card" style="display:none">
+        <div class="error-title">something went wrong</div>
+        <div class="error-msg" id="error-msg"></div>
+        <button class="retry-btn" onclick="retryFetch()">try again</button>
+      </div>
       <div id="topic-card" class="topic-card" style="display:none"></div>
-      <div class="action-row">
-        <button class="action-btn like-btn" id="like-btn" onclick="likeTopic()">&#9825; like</button>
-        <button class="action-btn dislike-btn" onclick="dislikeTopic()">&#10005; not for me</button>
+      <div id="action-buttons" style="display:none">
+        <div class="action-row">
+          <button class="action-btn like-btn" id="like-btn" onclick="likeTopic()">&#9825; like</button>
+          <button class="action-btn dislike-btn" onclick="dislikeTopic()">&#10005; not for me</button>
+        </div>
+        <div class="action-row">
+          <button class="action-btn yt-btn" onclick="openYT()">&#9654; youtube</button>
+          <button class="action-btn google-btn" onclick="openGoogle()">&#8853; google</button>
+        </div>
+        <button class="next-btn" id="next-btn" onclick="showNext()">next topic &#8594;</button>
       </div>
-      <div class="action-row">
-        <button class="action-btn yt-btn" onclick="openYT()">&#9654; youtube</button>
-        <button class="action-btn google-btn" onclick="openGoogle()">&#8853; google</button>
-      </div>
-      <button class="next-btn" id="next-btn" onclick="showNext()">next topic &#8594;</button>
     </div>
     <div id="liked-view" style="display:none;width:100%"><div id="liked-list"></div></div>
     <div id="history-view" style="display:none;width:100%"><div id="history-list"></div></div>
@@ -178,51 +216,112 @@ async function start(){
   showNext();
 }
 
+function showSkeleton(){
+  document.getElementById('skeleton-card').style.display='block';
+  document.getElementById('error-card').style.display='none';
+  document.getElementById('topic-card').style.display='none';
+  document.getElementById('action-buttons').style.display='none';
+}
+
+function showError(msg){
+  document.getElementById('skeleton-card').style.display='none';
+  document.getElementById('error-card').style.display='block';
+  document.getElementById('topic-card').style.display='none';
+  document.getElementById('action-buttons').style.display='none';
+  document.getElementById('error-msg').textContent=msg;
+}
+
+async function retryFetch(){
+  document.getElementById('error-card').style.display='none';
+  await fetchBatch();
+  showNext();
+}
+
 async function fetchBatch(){
   if(fetching)return;
-  fetching=true;setFetchStatus('fetching');
+  fetching=true;
+  setFetchStatus('fetching');
   try{
-    const res=await fetch('/api/topics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({exclude:allSeen.slice(0,80)})});
+    const res=await fetch('/api/topics',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({exclude:allSeen.slice(0,80)})
+    });
     const data=await res.json();
-    if(data.topics){
+    if(!res.ok){
+      throw new Error(data.error||'Server error '+res.status);
+    }
+    if(data.topics && data.topics.length>0){
       const fresh=data.topics.filter(t=>!disliked.includes(t.title_en));
       queue.push(...fresh);
+    } else {
+      throw new Error('No topics returned from API');
     }
-  }catch(e){console.error('Fetch error:',e);}
-  fetching=false;setFetchStatus('idle');
+  }catch(e){
+    console.error('Fetch error:',e);
+    fetching=false;
+    setFetchStatus('idle');
+    showError(e.message);
+    return false;
+  }
+  fetching=false;
+  setFetchStatus('idle');
+  return true;
 }
 
 async function showNext(){
-  document.getElementById('next-btn').disabled=true;
+  const nextBtn=document.getElementById('next-btn');
+  if(nextBtn)nextBtn.disabled=true;
+
   if(queue.length<=10&&!fetching)fetchBatch();
+
   if(queue.length===0){
+    showSkeleton();
     setFetchStatus('fetching');
-    while(queue.length===0&&fetching)await sleep(300);
+    let waited=0;
+    while(queue.length===0&&fetching&&waited<30000){
+      await sleep(300);waited+=300;
+    }
+    if(queue.length===0){
+      showError('Timed out waiting for topics. Check your API key at /api/debug');
+      return;
+    }
   }
+
   const next=queue.shift();
-  if(!next){document.getElementById('next-btn').disabled=false;return;}
-  current=next;seen++;allSeen.push(next.title_en);history.unshift(next);
+  if(!next){if(nextBtn)nextBtn.disabled=false;return;}
+  current=next;seen++;
+  allSeen.push(next.title_en);
+  history.unshift(next);
   renderTopic(next);
-  document.getElementById('next-btn').disabled=false;
+  if(nextBtn)nextBtn.disabled=false;
   if(seen%10===0&&!fetching)fetchBatch();
 }
 
 function renderTopic(t){
   document.getElementById('skeleton-card').style.display='none';
+  document.getElementById('error-card').style.display='none';
   const card=document.getElementById('topic-card');
   card.style.display='block';
-  card.innerHTML='<div class="topic-category">'+t.category+'</div>'
-    +'<div class="topic-title-en">'+t.title_en+'</div>'
-    +'<div class="topic-title-zh">'+t.title_zh+'</div>'
+  document.getElementById('action-buttons').style.display='block';
+  card.innerHTML='<div class="topic-category">'+esc(t.category)+'</div>'
+    +'<div class="topic-title-en">'+esc(t.title_en)+'</div>'
+    +'<div class="topic-title-zh">'+esc(t.title_zh)+'</div>'
     +'<div class="divider"></div>'
-    +'<div class="summary-en">'+t.summary_en+'</div>'
-    +'<div class="summary-zh">'+t.summary_zh+'</div>'
+    +'<div class="summary-en">'+esc(t.summary_en)+'</div>'
+    +'<div class="summary-zh">'+esc(t.summary_zh)+'</div>'
     +'<div class="fun-label">why it\'s fascinating</div>'
-    +'<div class="fun-en">'+t.fun_en+'</div>'
-    +'<div class="fun-zh">'+t.fun_zh+'</div>';
+    +'<div class="fun-en">'+esc(t.fun_en)+'</div>'
+    +'<div class="fun-zh">'+esc(t.fun_zh)+'</div>';
   document.getElementById('status-category').textContent=t.category;
   const lb=document.getElementById('like-btn');
-  lb.classList.remove('active');lb.innerHTML='&#9825; like';
+  const isLiked=!!liked.find(l=>l.title_en===t.title_en);
+  lb.classList.toggle('active',isLiked);
+  lb.innerHTML=isLiked?'&#9829; liked':'&#9825; like';
+}
+
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function likeTopic(){
@@ -230,9 +329,12 @@ function likeTopic(){
   const lb=document.getElementById('like-btn');
   if(liked.find(l=>l.title_en===current.title_en)){
     liked=liked.filter(l=>l.title_en!==current.title_en);
-    lb.classList.remove('active');lb.innerHTML='&#9825; like';showToast('removed from liked');
+    lb.classList.remove('active');lb.innerHTML='&#9825; like';
+    showToast('removed from liked');
   }else{
-    liked.unshift(current);lb.classList.add('active');lb.innerHTML='&#9829; liked';showToast('saved &#9825;');
+    liked.unshift(current);
+    lb.classList.add('active');lb.innerHTML='&#9829; liked';
+    showToast('saved &#9825;');
   }
 }
 
@@ -240,7 +342,8 @@ function dislikeTopic(){
   if(!current)return;
   disliked.push(current.title_en);
   queue=queue.filter(t=>!disliked.includes(t.title_en));
-  showToast('got it - never again');showNext();
+  showToast('got it - never again');
+  showNext();
 }
 
 function openYT(){if(!current)return;window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(current.search),'_blank');}
@@ -256,12 +359,12 @@ function switchTab(tab,btn){
   if(tab==='history')renderHistory();
 }
 
-function makeLink(t,removeFn){
+function makeItem(t,removeFn){
   return '<div class="list-item">'
     +(removeFn?'<button class="li-remove" onclick="'+removeFn+'">&#10005;</button>':'')
-    +'<div class="li-title-en">'+t.title_en+'</div>'
-    +'<div class="li-title-zh">'+t.title_zh+'</div>'
-    +'<div class="li-summary">'+t.summary_en+'</div>'
+    +'<div class="li-title-en">'+esc(t.title_en)+'</div>'
+    +'<div class="li-title-zh">'+esc(t.title_zh)+'</div>'
+    +'<div class="li-summary">'+esc(t.summary_en)+'</div>'
     +'<div class="li-links">'
     +'<a class="li-link" href="https://www.youtube.com/results?search_query='+encodeURIComponent(t.search)+'" target="_blank">&#9654; youtube</a>'
     +'<a class="li-link" href="https://www.google.com/search?q='+encodeURIComponent(t.title_en)+'" target="_blank">&#8853; google</a>'
@@ -269,25 +372,30 @@ function makeLink(t,removeFn){
 }
 
 function renderLiked(){
-  const el=document.getElementById('liked-list');
-  el.innerHTML=liked.length?liked.map((t,i)=>makeLink(t,'removeLiked('+i+')')).join(''):'<div class="list-empty">no liked topics yet</div>';
+  document.getElementById('liked-list').innerHTML=liked.length
+    ?liked.map((t,i)=>makeItem(t,'removeLiked('+i+')')).join('')
+    :'<div class="list-empty">no liked topics yet</div>';
 }
 function removeLiked(i){liked.splice(i,1);renderLiked();}
 function renderHistory(){
-  const el=document.getElementById('history-list');
-  el.innerHTML=history.length?history.map(t=>makeLink(t,null)).join(''):'<div class="list-empty">no history yet</div>';
+  document.getElementById('history-list').innerHTML=history.length
+    ?history.map(t=>makeItem(t,null)).join('')
+    :'<div class="list-empty">no history yet</div>';
 }
 
 function setFetchStatus(state){
-  const dot=document.getElementById('status-dot'),txt=document.getElementById('status-text');
-  if(state==='fetching'){dot.classList.add('pulse');txt.textContent='loading more';}
+  const dot=document.getElementById('status-dot');
+  const txt=document.getElementById('status-text');
+  if(state==='fetching'){dot.classList.add('pulse');txt.textContent='loading...';}
   else{dot.classList.remove('pulse');txt.textContent=queue.length+' ready';}
 }
 
 let toastTimer;
 function showToast(msg){
-  const t=document.getElementById('toast');t.innerHTML=msg;t.style.opacity='1';
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.opacity='0',2000);
+  const t=document.getElementById('toast');
+  t.innerHTML=msg;t.style.opacity='1';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.style.opacity='0',2000);
 }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 </script>
