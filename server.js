@@ -46,12 +46,15 @@ app.post("/api/topics", async (req, res) => {
   try {
     console.log("Calling OpenRouter for " + count + " topics");
 
-    // Free model fallback chain — tries each until one works
+    // openrouter/free auto-picks any available free model
+    // specific models are fallbacks in case the router itself fails
     const MODELS = [
+      "openrouter/auto",
       "meta-llama/llama-3.3-70b-instruct:free",
+      "google/gemma-3-27b-it:free",
       "google/gemma-3-12b-it:free",
       "mistralai/mistral-7b-instruct:free",
-      "deepseek/deepseek-r1-zero:free"
+      "nvidia/llama-3.1-nemotron-70b-instruct:free"
     ];
 
     let topics = null;
