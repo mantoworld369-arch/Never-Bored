@@ -20,26 +20,16 @@ function nextKey(keys) {
   return k;
 }
 
-// FREE-ONLY models — never use openrouter/auto (it can route to paid models like Claude Opus)
 const MODELS = [
+  "openrouter/auto",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "meta-llama/llama-4-scout:free",
   "google/gemma-3-27b-it:free",
   "google/gemma-3-12b-it:free",
-  "google/gemma-3-4b-it:free",
-  "mistralai/mistral-7b-instruct:free",
-  "mistralai/devstral-small:free",
-  "qwen/qwen3-8b:free",
-  "qwen/qwen3-14b:free",
-  "qwen/qwen2.5-7b-instruct:free",
-  "deepseek/deepseek-r1-distill-llama-70b:free",
-  "deepseek/deepseek-chat-v3-0324:free",
-  "nvidia/llama-3.1-nemotron-nano-8b-v1:free",
-  "microsoft/phi-4-reasoning-plus:free"
-].filter(m => !/claude|anthropic/i.test(m));
+  "mistralai/mistral-7b-instruct:free"
+];
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Only block Anthropic — allow openrouter/auto to pick from everything else
+const BLOCKED_PROVIDERS = ["Anthropic"];
 
 const TOPIC_SYSTEM = [
   "You are a topic generator for a curiosity app called Never Bored.",
@@ -75,7 +65,6 @@ async function callOpenRouter(messages, maxTokens, stream, res) {
   }
 
   for (const model of MODELS) {
-    if (/claude|anthropic/i.test(model)) { console.warn("Skipping paid model:", model); continue; }
     for (let ki = 0; ki < keys.length; ki++) {
       const apiKey = nextKey(keys);
       try {
@@ -93,15 +82,16 @@ async function callOpenRouter(messages, maxTokens, stream, res) {
             messages,
             max_tokens: maxTokens,
             temperature: 1.0,
-            stream
+            stream,
+            provider: {
+              ignore: BLOCKED_PROVIDERS
+            }
           })
         });
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
-          console.warn(model, "http error:", response.status, errData.error && errData.error.message);
-          // back off briefly on rate limit
-          if (response.status === 429) await sleep(600);
+          console.warn(model, "http error:", errData.error && errData.error.message);
           continue;
         }
 
@@ -142,31 +132,25 @@ async function callOpenRouter(messages, maxTokens, stream, res) {
 
 function parseJSON(raw) {
   const clean = raw.replace(/```json/g, "").replace(/```/g, "").trim();
-  // 1. Try direct parse
   try { return JSON.parse(clean); } catch (_) {}
-  // 2. Extract outermost [...] or {...} block
   const match = clean.match(/[\[{][\s\S]*[\]}]/);
   if (match) {
     try { return JSON.parse(match[0]); } catch (_) {}
-    // 3. If it's a truncated array, salvage complete objects from it
     if (match[0].startsWith("[")) {
-      try {
-        // Find all complete {...} objects inside the array
-        const objects = [];
-        let depth = 0, start = -1;
-        for (let i = 0; i < match[0].length; i++) {
-          const ch = match[0][i];
-          if (ch === "{") { if (depth === 0) start = i; depth++; }
-          else if (ch === "}") {
-            depth--;
-            if (depth === 0 && start !== -1) {
-              try { objects.push(JSON.parse(match[0].slice(start, i + 1))); } catch (_) {}
-              start = -1;
-            }
+      const objects = [];
+      let depth = 0, start = -1;
+      for (let i = 0; i < match[0].length; i++) {
+        const ch = match[0][i];
+        if (ch === "{") { if (depth === 0) start = i; depth++; }
+        else if (ch === "}") {
+          depth--;
+          if (depth === 0 && start !== -1) {
+            try { objects.push(JSON.parse(match[0].slice(start, i + 1))); } catch (_) {}
+            start = -1;
           }
         }
-        if (objects.length > 0) return objects;
-      } catch (_) {}
+      }
+      if (objects.length > 0) return objects;
     }
   }
   throw new Error("Could not parse JSON");
