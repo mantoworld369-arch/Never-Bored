@@ -553,6 +553,8 @@ function start() {
   if (sidebar) { sidebar.style.cssText += ';display:flex !important'; }
   if (toggle) { toggle.style.visibility = 'visible'; }
   document.getElementById('layout').style.paddingTop = '44px';
+  var bn = document.getElementById('bottom-nav');
+  if (bn) bn.classList.add('visible');
   showScreen('transition');
   setTransitionText('finding something interesting');
   fetchBatch(2).then(function() { showNextTopic(); });
@@ -742,7 +744,7 @@ function showScreen(name) {
   var target = document.getElementById(name + '-screen');
   if (target) target.classList.add('active');
   var bn = document.getElementById('bottom-nav');
-  if (bn) bn.classList.toggle('visible', name === 'main');
+  if (bn) bn.classList.toggle('visible', name !== 'bored');
 }
 
 function syncBottomTabs(tab) {
