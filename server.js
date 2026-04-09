@@ -169,6 +169,10 @@ app.post("/api/topics/stream", async (req, res) => {
   res.end();
 });
 
+app.get("/logo.png", (req, res) => {
+  res.sendFile(path.join(__dirname, "logo.png"));
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
