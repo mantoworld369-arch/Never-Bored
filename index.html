@@ -435,8 +435,9 @@ function selectCategory(id) {
   document.querySelectorAll('.cat-pill').forEach(function(p) {
     p.classList.toggle('active', p.dataset.id === id);
   });
-  // flush queue and re-fetch
+  // flush queue, reset fetching state, and re-fetch
   queue = [];
+  fetching = false;
   closeCatPanel();
   document.getElementById("cat-backdrop").classList.remove("open");
   if (document.getElementById('main-screen').classList.contains('active')) {
@@ -604,6 +605,12 @@ function onNextClick() {
 }
 
 function showNextTopic() {
+  // Discard any queued topics that don't match the active category
+  if (activeCategory !== 'all') {
+    queue = queue.filter(function(t) {
+      return t.category && t.category.toLowerCase() === activeCategory.toLowerCase();
+    });
+  }
   if (queue.length === 0) {
     if (fetching) { setTimeout(showNextTopic, 400); return; }
     fetchBatch(2).then(showNextTopic); return;
