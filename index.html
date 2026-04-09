@@ -8,81 +8,129 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0a0a0a;--surface:#111;--border:#252525;--border-hover:#383838;
-  --text-primary:#e8e8e8;--text-secondary:#888;--text-muted:#555;
+  --text-primary:#e8e8e8;--text-secondary:#888;--text-muted:#444;
 }
-body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem 4rem}
-#app{width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center}
+body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem 5rem}
+#app{width:100%;max-width:500px;display:flex;flex-direction:column;align-items:center}
 .screen{display:none;width:100%;flex-direction:column;align-items:center}
 .screen.active{display:flex}
-#bored-screen{min-height:80vh;justify-content:center;gap:12px}
+
+/* BORED SCREEN */
+#bored-screen{min-height:80vh;justify-content:center;gap:14px}
 .bored-btn{background:var(--surface);color:var(--text-primary);border:0.5px solid #3a3a3a;border-radius:999px;padding:18px 56px;font-size:17px;font-weight:500;cursor:pointer;transition:background .15s,transform .1s;font-family:inherit}
 .bored-btn:hover{background:#1e1e1e}
 .bored-btn:active{transform:scale(0.97)}
 .bored-hint{font-size:12px;color:var(--text-muted)}
+
+/* TABS */
 .tabs{display:flex;gap:3px;margin-bottom:1.5rem;background:#0e0e0e;border-radius:999px;padding:4px;border:0.5px solid var(--border)}
 .tab{padding:7px 22px;font-size:13px;border-radius:999px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;font-family:inherit;transition:all .15s}
 .tab.active{background:#222;color:var(--text-primary)}
-.status-bar{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding:0 2px}
+
+/* STATUS */
+.status-bar{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding:0 2px;min-height:20px}
 .status-tag{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em}
-.status-badge{font-size:11px;color:#3a3a3a;display:flex;align-items:center;gap:4px}
-.dot{width:6px;height:6px;border-radius:50%;background:#333}
+.status-badge{font-size:11px;color:#3a3a3a;display:flex;align-items:center;gap:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:#333;flex-shrink:0}
 .dot.pulse{background:#4a7a4a;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.topic-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem}
-.topic-category{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-.topic-title-en{font-size:21px;font-weight:500;color:#ebebeb;line-height:1.3;margin-bottom:4px}
-.topic-title-zh{font-size:15px;color:#666;margin-bottom:1rem}
+
+/* TOPIC CARD */
+.topic-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem 1.5rem 1.75rem;width:100%;margin-bottom:1rem;min-height:200px}
+.topic-category{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.topic-title-en{font-size:22px;font-weight:500;color:#ebebeb;line-height:1.25;margin-bottom:5px}
+.topic-title-zh{font-size:14px;color:#555;margin-bottom:1.1rem}
 .divider{height:0.5px;background:var(--border);margin:1rem 0}
-.summary-en{font-size:14px;line-height:1.75;color:#c0c0c0;margin-bottom:.6rem}
-.summary-zh{font-size:13px;line-height:1.75;color:#5e5e5e}
-.fun-label{font-size:10px;color:#3e3e3e;text-transform:uppercase;letter-spacing:.1em;margin:1rem 0 6px}
-.fun-en{font-size:13px;color:#888;line-height:1.65;margin-bottom:4px;font-style:italic}
-.fun-zh{font-size:12px;color:#484848;line-height:1.65;font-style:italic}
-.action-row{display:flex;gap:8px;width:100%;margin-bottom:.75rem}
-.action-btn{flex:1;padding:11px 0;border-radius:999px;border:0.5px solid var(--border);background:#0e0e0e;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px}
-.action-btn:hover{background:#181818;border-color:var(--border-hover);color:var(--text-primary)}
-.like-btn:hover,.like-btn.active{border-color:#c0555a;color:#d97070}
-.like-btn.active{background:#1a1010}
-.dislike-btn:hover{border-color:#3a3a3a;color:#555}
-.yt-btn:hover{border-color:#c03030;color:#d06060}
-.google-btn:hover{border-color:#3a6fbf;color:#6a9ae0}
-.next-btn{width:100%;padding:12px;border-radius:999px;border:0.5px solid var(--border);background:#0e0e0e;color:#666;font-size:14px;cursor:pointer;transition:all .15s;font-family:inherit}
-.next-btn:hover{background:#181818;color:var(--text-primary);border-color:var(--border-hover)}
-.next-btn:disabled{opacity:.4;cursor:not-allowed}
+.summary-en{font-size:14px;line-height:1.8;color:#bfbfbf;margin-bottom:.75rem}
+.summary-zh{font-size:13px;line-height:1.8;color:#545454}
+.fun-label{font-size:10px;color:#333;text-transform:uppercase;letter-spacing:.1em;margin:1.1rem 0 6px}
+.fun-en{font-size:13px;color:#777;line-height:1.65;margin-bottom:4px;font-style:italic}
+.fun-zh{font-size:12px;color:#3e3e3e;line-height:1.65;font-style:italic}
+
+/* CURSOR BLINK */
+.cursor{display:inline-block;width:2px;height:1em;background:#666;margin-left:2px;vertical-align:text-bottom;animation:blink .7s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* SKELETON */
 .skeleton-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem}
-.skel{background:#1a1a1a;border-radius:4px;margin-bottom:10px;animation:shimmer 1.5s ease-in-out infinite}
-@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}
-.error-card{background:#140a0a;border:0.5px solid #4a1a1a;border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem;display:none}
-.error-title{font-size:13px;color:#c06060;margin-bottom:8px;font-weight:500}
-.error-msg{font-size:12px;color:#885555;line-height:1.6;word-break:break-all}
-.retry-btn{margin-top:12px;padding:8px 20px;border-radius:999px;border:0.5px solid #4a1a1a;background:transparent;color:#c06060;font-size:13px;cursor:pointer;font-family:inherit}
-.retry-btn:hover{background:#1e0a0a}
+.skel{background:#181818;border-radius:4px;margin-bottom:10px;animation:shimmer 1.8s ease-in-out infinite}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* TRANSITION SCREEN */
+#transition-screen{min-height:80vh;justify-content:center;align-items:center;gap:24px}
+.transition-orb{width:64px;height:64px;border-radius:50%;background:transparent;border:0.5px solid #2a2a2a;display:flex;align-items:center;justify-content:center;position:relative}
+.orb-ring{position:absolute;width:64px;height:64px;border-radius:50%;border:1px solid transparent;border-top-color:#444;animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orb-dot{width:8px;height:8px;border-radius:50%;background:#333;animation:breathe 1.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1);background:#333}50%{transform:scale(1.4);background:#666}}
+.transition-text{font-size:13px;color:#333;letter-spacing:.05em}
+.transition-count{font-size:11px;color:#2a2a2a}
+
+/* ERROR */
+.error-card{background:#120808;border:0.5px solid #3a1515;border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem;display:none}
+.error-title{font-size:13px;color:#b05050;margin-bottom:8px;font-weight:500}
+.error-msg{font-size:12px;color:#6a3a3a;line-height:1.6;word-break:break-all}
+.retry-btn{margin-top:12px;padding:8px 20px;border-radius:999px;border:0.5px solid #3a1515;background:transparent;color:#b05050;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.retry-btn:hover{background:#1a0808}
+
+/* ACTION BUTTONS */
+.action-row{display:flex;gap:8px;width:100%;margin-bottom:.75rem}
+.action-btn{flex:1;padding:11px 0;border-radius:999px;border:0.5px solid var(--border);background:#0d0d0d;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px}
+.action-btn:hover{background:#181818;border-color:var(--border-hover);color:var(--text-primary)}
+.like-btn:hover,.like-btn.active{border-color:#b05060;color:#cc7080}
+.like-btn.active{background:#160a0c}
+.dislike-btn:hover{border-color:#333;color:#555}
+.yt-btn:hover{border-color:#993030;color:#cc6060}
+.google-btn:hover{border-color:#304a99;color:#6080cc}
+.next-btn{width:100%;padding:12px;border-radius:999px;border:0.5px solid var(--border);background:#0d0d0d;color:#555;font-size:14px;cursor:pointer;transition:all .15s;font-family:inherit;margin-top:0}
+.next-btn:hover{background:#181818;color:var(--text-primary);border-color:var(--border-hover)}
+.next-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* LIST VIEWS */
 .list-empty{font-size:14px;color:var(--text-muted);text-align:center;padding:4rem 0}
 .list-item{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;width:100%;margin-bottom:8px;position:relative}
 .li-title-en{font-size:14px;font-weight:500;color:#d0d0d0;padding-right:28px}
-.li-title-zh{font-size:12px;color:#555;margin-top:3px}
-.li-summary{font-size:12px;color:#777;margin-top:8px;line-height:1.55}
-.li-remove{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#333;font-size:14px;line-height:1;font-family:inherit}
+.li-title-zh{font-size:12px;color:#484848;margin-top:3px}
+.li-summary{font-size:12px;color:#666;margin-top:8px;line-height:1.6}
+.li-remove{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#2e2e2e;font-size:14px;line-height:1;font-family:inherit;transition:color .1s}
 .li-remove:hover{color:#666}
 .li-links{display:flex;gap:6px;margin-top:10px}
-.li-link{font-size:11px;padding:4px 12px;border-radius:999px;border:0.5px solid var(--border);background:transparent;color:#555;text-decoration:none;transition:all .12s}
+.li-link{font-size:11px;padding:4px 12px;border-radius:999px;border:0.5px solid var(--border);background:transparent;color:#484848;text-decoration:none;transition:all .12s}
 .li-link:hover{border-color:var(--border-hover);color:#aaa}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e1e1e;color:#bbb;border:0.5px solid #333;padding:9px 22px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:100}
-@media(max-width:520px){body{padding:1.5rem .75rem 4rem}.topic-title-en{font-size:18px}}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#aaa;border:0.5px solid #2e2e2e;padding:9px 22px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:100}
+
+@media(max-width:520px){body{padding:1.5rem .75rem 5rem}.topic-title-en{font-size:19px}}
 </style>
 </head>
 <body>
 <div id="app">
+
+  <!-- BORED -->
   <div id="bored-screen" class="screen active">
     <button class="bored-btn" id="bored-btn">i'm bored</button>
     <span class="bored-hint">discover something new</span>
   </div>
+
+  <!-- TRANSITION (between topics) -->
+  <div id="transition-screen" class="screen">
+    <div class="transition-orb">
+      <div class="orb-ring"></div>
+      <div class="orb-dot"></div>
+    </div>
+    <div class="transition-text" id="transition-text">finding something interesting</div>
+    <div class="transition-count" id="transition-count"></div>
+  </div>
+
+  <!-- MAIN -->
   <div id="main-screen" class="screen">
     <div class="tabs">
       <button class="tab active" id="tab-discover">discover</button>
       <button class="tab" id="tab-liked">liked</button>
       <button class="tab" id="tab-history">history</button>
     </div>
+
     <div id="discover-view" style="width:100%">
       <div class="status-bar">
         <span class="status-tag" id="status-category"></span>
@@ -91,21 +139,27 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
           <span id="status-text"></span>
         </span>
       </div>
-      <div id="skeleton-card" class="skeleton-card">
-        <div class="skel" style="height:11px;width:60px"></div>
-        <div class="skel" style="height:22px;width:75%;margin-top:8px"></div>
-        <div class="skel" style="height:15px;width:45%"></div>
-        <div style="height:0.5px;background:#1e1e1e;margin:16px 0"></div>
+
+      <div id="skeleton-card" class="skeleton-card" style="display:none">
+        <div class="skel" style="height:10px;width:50px"></div>
+        <div class="skel" style="height:24px;width:70%;margin-top:10px"></div>
+        <div class="skel" style="height:14px;width:40%"></div>
+        <div style="height:0.5px;background:#181818;margin:16px 0"></div>
         <div class="skel" style="height:13px;width:100%"></div>
-        <div class="skel" style="height:13px;width:90%"></div>
-        <div class="skel" style="height:13px;width:80%"></div>
+        <div class="skel" style="height:13px;width:95%"></div>
+        <div class="skel" style="height:13px;width:88%"></div>
+        <div class="skel" style="height:13px;width:92%"></div>
+        <div class="skel" style="height:13px;width:70%"></div>
       </div>
+
       <div id="error-card" class="error-card">
         <div class="error-title">something went wrong</div>
         <div class="error-msg" id="error-msg"></div>
         <button class="retry-btn" id="retry-btn">try again</button>
       </div>
+
       <div id="topic-card" class="topic-card" style="display:none"></div>
+
       <div id="action-buttons" style="display:none">
         <div class="action-row">
           <button class="action-btn like-btn" id="like-btn">&#9825; like</button>
@@ -118,35 +172,231 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
         <button class="next-btn" id="next-btn">next topic &#8594;</button>
       </div>
     </div>
+
     <div id="liked-view" style="display:none;width:100%"><div id="liked-list"></div></div>
     <div id="history-view" style="display:none;width:100%"><div id="history-list"></div></div>
   </div>
+
 </div>
 <div id="toast"></div>
 
 <script>
 (function() {
-  var queue = [], seen = 0, current = null, fetching = false;
-  var allSeen = [], disliked = [], liked = [], history = [];
+  // ── PERSISTENCE via localStorage ──
+  function load(key, def) {
+    try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e) { return def; }
+  }
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+  }
 
-  // Wire up buttons via JS — no inline onclick so no scope issues
+  var queue = [];
+  var current = null;
+  var fetching = false;
+  var topicCount = 0;
+
+  // Persisted state
+  var allSeen = load('nb_seen', []);      // titles seen ever (for dedup)
+  var disliked = load('nb_disliked', []); // titles never to show again
+  var liked = load('nb_liked', []);       // liked topic objects
+  var history = load('nb_history', []);   // all viewed topics (newest first)
+
+  // ── WIRE UP ──
   document.getElementById('bored-btn').addEventListener('click', start);
   document.getElementById('retry-btn').addEventListener('click', retryFetch);
   document.getElementById('like-btn').addEventListener('click', likeTopic);
   document.getElementById('dislike-btn').addEventListener('click', dislikeTopic);
   document.getElementById('yt-btn').addEventListener('click', openYT);
   document.getElementById('google-btn').addEventListener('click', openGoogle);
-  document.getElementById('next-btn').addEventListener('click', showNext);
-  document.getElementById('tab-discover').addEventListener('click', function() { switchTab('discover', this); });
-  document.getElementById('tab-liked').addEventListener('click', function() { switchTab('liked', this); });
-  document.getElementById('tab-history').addEventListener('click', function() { switchTab('history', this); });
+  document.getElementById('next-btn').addEventListener('click', onNextClick);
+  document.getElementById('tab-discover').addEventListener('click', function(){ switchTab('discover',this); });
+  document.getElementById('tab-liked').addEventListener('click', function(){ switchTab('liked',this); });
+  document.getElementById('tab-history').addEventListener('click', function(){ switchTab('history',this); });
 
+  // ── START ──
   function start() {
-    document.getElementById('bored-screen').classList.remove('active');
-    document.getElementById('main-screen').classList.add('active');
-    showSkeleton();
+    showScreen('transition');
+    setTransitionText('finding something interesting', '');
+    fetchBatch(2).then(function() { showNextTopic(true); });
+  }
+
+  // ── FETCH BATCH (streaming) ──
+  function fetchBatch(count) {
+    if (fetching) return Promise.resolve();
+    fetching = true;
     setFetchStatus('fetching');
-    fetchBatch(5).then(function() { showNext(); fetchBatch(20); });
+    count = count || 2;
+
+    return new Promise(function(resolve) {
+      var es = new EventSource('/api/topics/stream?' + new URLSearchParams({
+        exclude: JSON.stringify(allSeen.slice(0, 60)),
+        count: count
+      }));
+
+      // Reopen as POST via fetch+ReadableStream since EventSource only does GET
+      es.close();
+
+      fetch('/api/topics/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exclude: allSeen.slice(0, 60), count: count })
+      }).then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        var buf = '';
+
+        function pump() {
+          return reader.read().then(function(result) {
+            if (result.done) { fetching = false; setFetchStatus('idle'); resolve(); return; }
+            buf += decoder.decode(result.value, { stream: true });
+            var lines = buf.split('\n');
+            buf = lines.pop(); // keep partial line
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (!line.startsWith('data:')) continue;
+              try {
+                var payload = JSON.parse(line.slice(5).trim());
+                if (payload.topics) {
+                  var fresh = payload.topics.filter(function(t) {
+                    return disliked.indexOf(t.title_en) === -1 && allSeen.indexOf(t.title_en) === -1;
+                  });
+                  queue = queue.concat(fresh);
+                }
+                if (payload.error) {
+                  showError(payload.error);
+                }
+              } catch(e) {}
+            }
+            return pump();
+          });
+        }
+        return pump();
+      }).catch(function(err) {
+        fetching = false;
+        setFetchStatus('idle');
+        showError(err.message);
+        resolve();
+      });
+    });
+  }
+
+  // ── NEXT TOPIC FLOW ──
+  function onNextClick() {
+    showScreen('transition');
+    setTransitionText('loading next topic', '');
+    var waitMs = 4000; // 4 seconds meaningful pause
+    setTimeout(function() { showNextTopic(false); }, waitMs);
+  }
+
+  function showNextTopic(firstTime) {
+    if (queue.length === 0) {
+      if (fetching) {
+        setTransitionText('almost there', '');
+        setTimeout(function() { showNextTopic(firstTime); }, 500);
+        return;
+      }
+      // Re-fetch if queue empty
+      fetchBatch(2).then(function() { showNextTopic(firstTime); });
+      return;
+    }
+
+    var topic = queue.shift();
+    current = topic;
+    topicCount++;
+    allSeen.push(topic.title_en);
+    save('nb_seen', allSeen.slice(-200)); // keep last 200
+    history.unshift(topic);
+    save('nb_history', history.slice(0, 100));
+
+    // Pre-fetch next batch when queue runs low
+    if (queue.length < 2 && !fetching) fetchBatch(2);
+
+    showScreen('main');
+    typewriteTopic(topic);
+  }
+
+  // ── TYPEWRITER EFFECT ──
+  function typewriteTopic(t) {
+    document.getElementById('skeleton-card').style.display = 'none';
+    document.getElementById('error-card').style.display = 'none';
+    var card = document.getElementById('topic-card');
+    card.style.display = 'block';
+    document.getElementById('action-buttons').style.display = 'block';
+    document.getElementById('status-category').textContent = t.category;
+
+    // Set like button state
+    var lb = document.getElementById('like-btn');
+    var isLiked = liked.some(function(l){ return l.title_en === t.title_en; });
+    lb.classList.toggle('active', isLiked);
+    lb.innerHTML = isLiked ? '&#9829; liked' : '&#9825; like';
+
+    // Build card with placeholder spans we'll fill in
+    card.innerHTML =
+      '<div class="topic-category">' + esc(t.category) + '</div>' +
+      '<div class="topic-title-en">' + esc(t.title_en) + '</div>' +
+      '<div class="topic-title-zh">' + esc(t.title_zh) + '</div>' +
+      '<div class="divider"></div>' +
+      '<div class="summary-en" id="tw-sum-en"></div>' +
+      '<div class="summary-zh" id="tw-sum-zh"></div>' +
+      '<div class="fun-label">why it\'s fascinating</div>' +
+      '<div class="fun-en" id="tw-fun-en"></div>' +
+      '<div class="fun-zh" id="tw-fun-zh"></div>';
+
+    // Typewrite each section sequentially
+    var sections = [
+      { id: 'tw-sum-en', text: t.summary_en },
+      { id: 'tw-sum-zh', text: t.summary_zh },
+      { id: 'tw-fun-en', text: t.fun_en },
+      { id: 'tw-fun-zh', text: t.fun_zh }
+    ];
+
+    typewriteSections(sections, 0);
+    setFetchStatus('idle');
+  }
+
+  function typewriteSections(sections, idx) {
+    if (idx >= sections.length) return;
+    var s = sections[idx];
+    var el = document.getElementById(s.id);
+    if (!el) return;
+    typewriteEl(el, s.text, 12, function() {
+      typewriteSections(sections, idx + 1);
+    });
+  }
+
+  function typewriteEl(el, text, speed, done) {
+    el.textContent = '';
+    var cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    el.appendChild(cursor);
+    var i = 0;
+    var chars = text.split('');
+    function step() {
+      if (i >= chars.length) {
+        cursor.remove();
+        if (done) done();
+        return;
+      }
+      // Insert before cursor
+      el.insertBefore(document.createTextNode(chars[i]), cursor);
+      i++;
+      setTimeout(step, speed + Math.random() * 8);
+    }
+    step();
+  }
+
+  // ── SCREENS ──
+  function showScreen(name) {
+    document.getElementById('bored-screen').classList.remove('active');
+    document.getElementById('transition-screen').classList.remove('active');
+    document.getElementById('main-screen').classList.remove('active');
+    document.getElementById(name + '-screen').classList.add('active');
+  }
+
+  function setTransitionText(main, sub) {
+    document.getElementById('transition-text').textContent = main;
+    document.getElementById('transition-count').textContent = sub;
   }
 
   function showSkeleton() {
@@ -157,6 +407,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
   }
 
   function showError(msg) {
+    showScreen('main');
     document.getElementById('skeleton-card').style.display = 'none';
     document.getElementById('error-card').style.display = 'block';
     document.getElementById('topic-card').style.display = 'none';
@@ -165,105 +416,16 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
   }
 
   function retryFetch() {
-    showSkeleton();
-    fetchBatch(5).then(function() { showNext(); });
+    showScreen('transition');
+    setTransitionText('trying again', '');
+    fetchBatch(2).then(function() { showNextTopic(true); });
   }
 
-  function fetchBatch(count) {
-    if (fetching) return Promise.resolve();
-    fetching = true;
-    setFetchStatus('fetching');
-    return fetch('/api/topics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ exclude: allSeen.slice(0, 80), count: count || 20 })
-    })
-    .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
-    .then(function(result) {
-      if (!result.ok) throw new Error(result.data.error || 'Server error');
-      if (!result.data.topics || result.data.topics.length === 0) throw new Error('No topics returned');
-      var fresh = result.data.topics.filter(function(t) { return disliked.indexOf(t.title_en) === -1; });
-      queue = queue.concat(fresh);
-      fetching = false;
-      setFetchStatus('idle');
-    })
-    .catch(function(e) {
-      console.error('Fetch error:', e);
-      fetching = false;
-      setFetchStatus('idle');
-      showError(e.message);
-    });
-  }
-
-  function showNext() {
-    var nextBtn = document.getElementById('next-btn');
-    if (nextBtn) nextBtn.disabled = true;
-
-    if (queue.length <= 10 && !fetching) fetchBatch(20);
-
-    if (queue.length === 0) {
-      showSkeleton();
-      setFetchStatus('fetching');
-      var attempts = 0;
-      var interval = setInterval(function() {
-        attempts++;
-        if (queue.length > 0) {
-          clearInterval(interval);
-          dequeue();
-        } else if (attempts > 100) {
-          clearInterval(interval);
-          showError('Timed out. Check Render logs.');
-        }
-      }, 300);
-      return;
-    }
-    dequeue();
-  }
-
-  function dequeue() {
-    var next = queue.shift();
-    if (!next) return;
-    current = next;
-    seen++;
-    allSeen.push(next.title_en);
-    history.unshift(next);
-    renderTopic(next);
-    var nextBtn = document.getElementById('next-btn');
-    if (nextBtn) nextBtn.disabled = false;
-    if (seen % 10 === 0 && !fetching) fetchBatch(20);
-  }
-
-  function esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function renderTopic(t) {
-    document.getElementById('skeleton-card').style.display = 'none';
-    document.getElementById('error-card').style.display = 'none';
-    var card = document.getElementById('topic-card');
-    card.style.display = 'block';
-    document.getElementById('action-buttons').style.display = 'block';
-    card.innerHTML =
-      '<div class="topic-category">' + esc(t.category) + '</div>' +
-      '<div class="topic-title-en">' + esc(t.title_en) + '</div>' +
-      '<div class="topic-title-zh">' + esc(t.title_zh) + '</div>' +
-      '<div class="divider"></div>' +
-      '<div class="summary-en">' + esc(t.summary_en) + '</div>' +
-      '<div class="summary-zh">' + esc(t.summary_zh) + '</div>' +
-      '<div class="fun-label">why it\'s fascinating</div>' +
-      '<div class="fun-en">' + esc(t.fun_en) + '</div>' +
-      '<div class="fun-zh">' + esc(t.fun_zh) + '</div>';
-    document.getElementById('status-category').textContent = t.category;
-    var lb = document.getElementById('like-btn');
-    var isLiked = liked.some(function(l) { return l.title_en === t.title_en; });
-    lb.classList.toggle('active', isLiked);
-    lb.innerHTML = isLiked ? '&#9829; liked' : '&#9825; like';
-  }
-
+  // ── LIKE / DISLIKE ──
   function likeTopic() {
     if (!current) return;
     var lb = document.getElementById('like-btn');
-    var idx = liked.findIndex(function(l) { return l.title_en === current.title_en; });
+    var idx = liked.findIndex(function(l){ return l.title_en === current.title_en; });
     if (idx > -1) {
       liked.splice(idx, 1);
       lb.classList.remove('active');
@@ -275,28 +437,31 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
       lb.innerHTML = '&#9829; liked';
       showToast('saved!');
     }
+    save('nb_liked', liked);
   }
 
   function dislikeTopic() {
     if (!current) return;
     disliked.push(current.title_en);
-    queue = queue.filter(function(t) { return disliked.indexOf(t.title_en) === -1; });
-    showToast('got it - never again');
-    showNext();
+    save('nb_disliked', disliked);
+    queue = queue.filter(function(t){ return disliked.indexOf(t.title_en) === -1; });
+    showToast('never again');
+    onNextClick();
   }
 
+  // ── LINKS ──
   function openYT() {
     if (!current) return;
     window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(current.search), '_blank');
   }
-
   function openGoogle() {
     if (!current) return;
     window.open('https://www.google.com/search?q=' + encodeURIComponent(current.title_en), '_blank');
   }
 
+  // ── TABS ──
   function switchTab(tab, btn) {
-    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
     btn.classList.add('active');
     document.getElementById('discover-view').style.display = tab === 'discover' ? 'block' : 'none';
     document.getElementById('liked-view').style.display = tab === 'liked' ? 'block' : 'none';
@@ -306,13 +471,11 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
   }
 
   function makeItem(t, removeIdx) {
-    var removeBtn = removeIdx !== null
-      ? '<button class="li-remove" data-idx="' + removeIdx + '">&#10005;</button>'
-      : '';
-    return '<div class="list-item">' + removeBtn +
+    return '<div class="list-item">' +
+      (removeIdx !== null ? '<button class="li-remove" data-idx="' + removeIdx + '">&#10005;</button>' : '') +
       '<div class="li-title-en">' + esc(t.title_en) + '</div>' +
       '<div class="li-title-zh">' + esc(t.title_zh) + '</div>' +
-      '<div class="li-summary">' + esc(t.summary_en) + '</div>' +
+      '<div class="li-summary">' + esc((t.summary_en || '').slice(0, 160)) + '...</div>' +
       '<div class="li-links">' +
         '<a class="li-link" href="https://www.youtube.com/results?search_query=' + encodeURIComponent(t.search) + '" target="_blank">&#9654; youtube</a>' +
         '<a class="li-link" href="https://www.google.com/search?q=' + encodeURIComponent(t.title_en) + '" target="_blank">&#8853; google</a>' +
@@ -322,10 +485,11 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
   function renderLiked() {
     var el = document.getElementById('liked-list');
     if (!liked.length) { el.innerHTML = '<div class="list-empty">no liked topics yet</div>'; return; }
-    el.innerHTML = liked.map(function(t, i) { return makeItem(t, i); }).join('');
+    el.innerHTML = liked.map(function(t,i){ return makeItem(t, i); }).join('');
     el.querySelectorAll('.li-remove').forEach(function(btn) {
       btn.addEventListener('click', function() {
         liked.splice(parseInt(this.dataset.idx), 1);
+        save('nb_liked', liked);
         renderLiked();
       });
     });
@@ -333,16 +497,22 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 
   function renderHistory() {
     var el = document.getElementById('history-list');
-    el.innerHTML = history.length
-      ? history.map(function(t) { return makeItem(t, null); }).join('')
-      : '<div class="list-empty">no history yet</div>';
+    if (!history.length) { el.innerHTML = '<div class="list-empty">no history yet</div>'; return; }
+    el.innerHTML = history.map(function(t){ return makeItem(t, null); }).join('');
   }
 
+  // ── STATUS ──
   function setFetchStatus(state) {
     var dot = document.getElementById('status-dot');
     var txt = document.getElementById('status-text');
-    if (state === 'fetching') { dot.classList.add('pulse'); txt.textContent = 'loading...'; }
+    if (!dot || !txt) return;
+    if (state === 'fetching') { dot.classList.add('pulse'); txt.textContent = 'loading more...'; }
     else { dot.classList.remove('pulse'); txt.textContent = queue.length + ' ready'; }
+  }
+
+  // ── HELPERS ──
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   var toastTimer;
@@ -350,8 +520,9 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
     var t = document.getElementById('toast');
     t.textContent = msg; t.style.opacity = '1';
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function() { t.style.opacity = '0'; }, 2000);
+    toastTimer = setTimeout(function(){ t.style.opacity = '0'; }, 2000);
   }
+
 })();
 </script>
 </body>
