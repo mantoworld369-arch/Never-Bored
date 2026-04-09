@@ -8,538 +8,819 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a0a;--surface:#111;--border:#252525;--border-hover:#383838;
-  --text-primary:#e8e8e8;--text-secondary:#888;--text-muted:#444;
+  --bg:#0a0a0a;--surface:#111;--border:#222;--border-hover:#383838;
+  --text-primary:#e8e8e8;--text-secondary:#777;--text-muted:#3a3a3a;
 }
-body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem 5rem}
-#app{width:100%;max-width:500px;display:flex;flex-direction:column;align-items:center}
-.screen{display:none;width:100%;flex-direction:column;align-items:center}
-.screen.active{display:flex}
+body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
 
-/* BORED SCREEN */
-#bored-screen{min-height:80vh;justify-content:center;gap:14px}
-.bored-btn{background:var(--surface);color:var(--text-primary);border:0.5px solid #3a3a3a;border-radius:999px;padding:18px 56px;font-size:17px;font-weight:500;cursor:pointer;transition:background .15s,transform .1s;font-family:inherit}
+/* ── SEARCH BAR (top) ── */
+#search-bar{
+  position:fixed;top:0;left:0;right:0;z-index:80;
+  height:44px;
+  display:flex;align-items:center;
+  padding:0 1.25rem;gap:10px;
+  background:rgba(10,10,10,0.85);
+  backdrop-filter:blur(12px);
+  border-bottom:0.5px solid var(--border);
+  cursor:text;
+}
+#search-bar svg{flex-shrink:0;opacity:.35}
+#search-bar-text{font-size:13px;color:#3a3a3a;flex:1}
+#search-bar-streak{font-size:11px;color:#2e2e2e;white-space:nowrap}
+
+/* ── SEARCH OVERLAY ── */
+#search-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(5,5,5,0.85);backdrop-filter:blur(18px);
+  flex-direction:column;align-items:center;padding:4rem 1rem 2rem;
+}
+#search-overlay.open{display:flex}
+#search-input-wrap{
+  width:100%;max-width:560px;
+  display:flex;align-items:center;gap:10px;
+  background:#161616;border:0.5px solid #2e2e2e;
+  border-radius:12px;padding:12px 16px;margin-bottom:1.25rem;
+}
+#search-input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-size:16px;color:var(--text-primary);font-family:inherit;
+}
+#search-input::placeholder{color:#333}
+#search-close{
+  background:none;border:none;cursor:pointer;color:#444;
+  font-size:20px;line-height:1;font-family:inherit;padding:2px 4px;
+  transition:color .15s;
+}
+#search-close:hover{color:#888}
+#search-results{width:100%;max-width:560px;overflow-y:auto;max-height:calc(100vh - 160px)}
+#search-empty{font-size:14px;color:#333;text-align:center;padding:2rem 0}
+
+/* ── LAYOUT WRAPPER ── */
+#layout{
+  display:flex;
+  padding-top:44px; /* below search bar */
+  min-height:100vh;
+}
+
+/* ── CATEGORY SIDEBAR (desktop) ── */
+#cat-sidebar{
+  width:130px;flex-shrink:0;
+  padding:1.5rem .75rem 2rem;
+  border-right:0.5px solid var(--border);
+  position:sticky;top:44px;height:calc(100vh - 44px);
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:4px;
+}
+.cat-pill{
+  padding:7px 10px;border-radius:8px;font-size:12px;
+  cursor:pointer;color:#3e3e3e;background:transparent;
+  border:none;font-family:inherit;text-align:left;
+  transition:all .15s;line-height:1.3;
+}
+.cat-pill:hover{background:#161616;color:#888}
+.cat-pill.active{background:#1e1e1e;color:var(--text-primary)}
+.cat-pill-en{display:block}
+.cat-pill-zh{display:block;font-size:10px;opacity:.6;margin-top:1px}
+
+/* ── MOBILE CAT PANEL ── */
+#cat-toggle{
+  display:none;
+  position:fixed;left:0;top:50%;transform:translateY(-50%);
+  z-index:70;
+  background:#161616;border:0.5px solid var(--border);
+  border-left:none;border-radius:0 6px 6px 0;
+  padding:8px 6px;cursor:pointer;
+  writing-mode:vertical-lr;font-size:10px;color:#444;
+  letter-spacing:.05em;
+}
+#cat-panel{
+  display:none;position:fixed;left:0;top:44px;bottom:0;
+  width:30%;z-index:150;
+  background:#0d0d0d;border-right:0.5px solid var(--border);
+  padding:1.25rem .75rem;overflow-y:auto;
+  transform:translateX(-100%);transition:transform .25s ease;
+}
+#cat-panel.open{transform:translateX(0)}
+#cat-panel-close{
+  background:none;border:none;cursor:pointer;color:#444;
+  font-size:18px;margin-bottom:1rem;font-family:inherit;
+}
+
+/* ── MAIN CONTENT ── */
+#main-content{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;align-items:center;
+  padding:2rem 1rem 5rem;
+}
+
+/* ── BORED SCREEN ── */
+#bored-screen{display:none;min-height:calc(100vh - 44px);justify-content:center;align-items:center;flex-direction:column;gap:10px;text-align:center}
+#bored-screen.active{display:flex}
+#logo-mark{width:68px;height:68px;object-fit:contain;opacity:.2;transition:opacity .3s;margin-bottom:.5rem}
+#logo-mark:hover{opacity:.38}
+.app-tagline{font-size:14px;color:#666;letter-spacing:.02em;line-height:1.6}
+.app-title{font-size:36px;font-weight:500;color:#ebebeb;letter-spacing:-.02em;line-height:1.1}
+.bored-btn{margin-top:1.5rem;background:#141414;color:var(--text-primary);border:0.5px solid #333;border-radius:999px;padding:17px 54px;font-size:17px;font-weight:500;cursor:pointer;transition:background .15s,transform .1s;font-family:inherit}
 .bored-btn:hover{background:#1e1e1e}
 .bored-btn:active{transform:scale(0.97)}
-.bored-hint{font-size:12px;color:var(--text-muted)}
+.bored-hint{font-size:12px;color:#2e2e2e}
 
-/* TABS */
-.tabs{display:flex;gap:3px;margin-bottom:1.5rem;background:#0e0e0e;border-radius:999px;padding:4px;border:0.5px solid var(--border)}
-.tab{padding:7px 22px;font-size:13px;border-radius:999px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;font-family:inherit;transition:all .15s}
-.tab.active{background:#222;color:var(--text-primary)}
+/* ── TRANSITION SCREEN ── */
+#transition-screen{display:none;min-height:calc(100vh - 44px);justify-content:center;align-items:center;flex-direction:column;gap:20px}
+#transition-screen.active{display:flex}
+.transition-orb{width:56px;height:56px;border-radius:50%;border:0.5px solid #1e1e1e;display:flex;align-items:center;justify-content:center;position:relative}
+.orb-ring{position:absolute;width:56px;height:56px;border-radius:50%;border:1px solid transparent;border-top-color:#333;animation:spin 1.1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orb-dot{width:7px;height:7px;border-radius:50%;background:#2a2a2a;animation:breathe 1.1s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1);background:#2a2a2a}50%{transform:scale(1.5);background:#555}}
+.transition-text{font-size:13px;color:#2e2e2e;letter-spacing:.05em}
 
-/* STATUS */
-.status-bar{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding:0 2px;min-height:20px}
+/* ── MAIN APP SCREEN ── */
+#main-screen{display:none;width:100%;max-width:540px;flex-direction:column;align-items:center}
+#main-screen.active{display:flex}
+
+.tabs{display:flex;gap:3px;margin-bottom:1.25rem;background:#0e0e0e;border-radius:999px;padding:4px;border:0.5px solid var(--border)}
+.tab{padding:7px 20px;font-size:13px;border-radius:999px;cursor:pointer;color:#444;background:transparent;border:none;font-family:inherit;transition:all .15s}
+.tab.active{background:#1e1e1e;color:var(--text-primary)}
+
+.status-bar{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;padding:0 2px;min-height:20px}
 .status-tag{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em}
-.status-badge{font-size:11px;color:#3a3a3a;display:flex;align-items:center;gap:5px}
-.dot{width:6px;height:6px;border-radius:50%;background:#333;flex-shrink:0}
-.dot.pulse{background:#4a7a4a;animation:pulse 1.4s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-badge{font-size:11px;color:#2a2a2a;display:flex;align-items:center;gap:5px}
+.dot{width:5px;height:5px;border-radius:50%;background:#2a2a2a;flex-shrink:0}
+.dot.pulse{background:#3a6a3a;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* TOPIC CARD */
-.topic-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem 1.5rem 1.75rem;width:100%;margin-bottom:1rem;min-height:200px}
+/* ── TOPIC CARD ── */
+.topic-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem 1.5rem 1.75rem;width:100%;margin-bottom:.875rem;min-height:180px}
 .topic-category{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
 .topic-title-en{font-size:22px;font-weight:500;color:#ebebeb;line-height:1.25;margin-bottom:5px}
-.topic-title-zh{font-size:14px;color:#555;margin-bottom:1.1rem}
+.topic-title-zh{font-size:14px;color:#444;margin-bottom:1rem}
 .divider{height:0.5px;background:var(--border);margin:1rem 0}
 .summary-en{font-size:14px;line-height:1.8;color:#bfbfbf;margin-bottom:.75rem}
-.summary-zh{font-size:13px;line-height:1.8;color:#545454}
-.fun-label{font-size:10px;color:#333;text-transform:uppercase;letter-spacing:.1em;margin:1.1rem 0 6px}
-.fun-en{font-size:13px;color:#777;line-height:1.65;margin-bottom:4px;font-style:italic}
-.fun-zh{font-size:12px;color:#3e3e3e;line-height:1.65;font-style:italic}
+.summary-zh{font-size:13px;line-height:1.8;color:#484848}
+.fun-label{font-size:10px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.1em;margin:1rem 0 6px}
+.fun-en{font-size:13px;color:#666;line-height:1.65;margin-bottom:4px;font-style:italic}
+.fun-zh{font-size:12px;color:#363636;line-height:1.65;font-style:italic}
 
-/* CURSOR BLINK */
-.cursor{display:inline-block;width:2px;height:1em;background:#666;margin-left:2px;vertical-align:text-bottom;animation:blink .7s step-end infinite}
+/* cursor blink */
+.cursor{display:inline-block;width:2px;height:.9em;background:#555;margin-left:2px;vertical-align:text-bottom;animation:blink .7s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* SKELETON */
-.skeleton-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem}
+/* ── DEEPER CARD ── */
+.deeper-card{background:#0e0e0e;border:0.5px solid #1e1e1e;border-radius:16px;padding:1.5rem;width:100%;margin-bottom:.875rem;display:none}
+.deeper-label{font-size:10px;color:#2e2e2e;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.deeper-text{font-size:14px;line-height:1.85;color:#aaa}
+.deeper-text-zh{font-size:13px;line-height:1.85;color:#424242;margin-top:.75rem}
+.rabbit-label{font-size:10px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.1em;margin:1rem 0 8px}
+.rabbit-hole{display:flex;flex-direction:column;gap:6px}
+.rabbit-link{font-size:12px;color:#3a3a3a;cursor:pointer;text-decoration:none;transition:color .15s;padding:6px 10px;border:0.5px solid #1a1a1a;border-radius:8px;background:transparent}
+.rabbit-link:hover{color:#888;border-color:#2e2e2e}
+
+/* skeleton */
+.skeleton-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;margin-bottom:.875rem}
 .skel{background:#181818;border-radius:4px;margin-bottom:10px;animation:shimmer 1.8s ease-in-out infinite}
-@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
+@keyframes shimmer{0%,100%{opacity:.35}50%{opacity:.75}}
 
-/* TRANSITION SCREEN */
-#transition-screen{min-height:80vh;justify-content:center;align-items:center;gap:24px}
-.transition-orb{width:64px;height:64px;border-radius:50%;background:transparent;border:0.5px solid #2a2a2a;display:flex;align-items:center;justify-content:center;position:relative}
-.orb-ring{position:absolute;width:64px;height:64px;border-radius:50%;border:1px solid transparent;border-top-color:#444;animation:spin 1.2s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.orb-dot{width:8px;height:8px;border-radius:50%;background:#333;animation:breathe 1.2s ease-in-out infinite}
-@keyframes breathe{0%,100%{transform:scale(1);background:#333}50%{transform:scale(1.4);background:#666}}
-.transition-text{font-size:13px;color:#333;letter-spacing:.05em}
-.transition-count{font-size:11px;color:#2a2a2a}
+/* error */
+.error-card{background:#0f0808;border:0.5px solid #2e1515;border-radius:16px;padding:1.5rem;width:100%;margin-bottom:.875rem;display:none}
+.error-title{font-size:13px;color:#904040;margin-bottom:8px;font-weight:500}
+.error-msg{font-size:12px;color:#5a2e2e;line-height:1.6;word-break:break-all}
+.retry-btn{margin-top:12px;padding:7px 18px;border-radius:999px;border:0.5px solid #2e1515;background:transparent;color:#904040;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.retry-btn:hover{background:#160808}
 
-/* ERROR */
-.error-card{background:#120808;border:0.5px solid #3a1515;border-radius:16px;padding:1.5rem;width:100%;margin-bottom:1rem;display:none}
-.error-title{font-size:13px;color:#b05050;margin-bottom:8px;font-weight:500}
-.error-msg{font-size:12px;color:#6a3a3a;line-height:1.6;word-break:break-all}
-.retry-btn{margin-top:12px;padding:8px 20px;border-radius:999px;border:0.5px solid #3a1515;background:transparent;color:#b05050;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
-.retry-btn:hover{background:#1a0808}
-
-/* ACTION BUTTONS */
+/* action buttons */
 .action-row{display:flex;gap:8px;width:100%;margin-bottom:.75rem}
 .action-btn{flex:1;padding:11px 0;border-radius:999px;border:0.5px solid var(--border);background:#0d0d0d;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px}
 .action-btn:hover{background:#181818;border-color:var(--border-hover);color:var(--text-primary)}
-.like-btn:hover,.like-btn.active{border-color:#b05060;color:#cc7080}
-.like-btn.active{background:#160a0c}
-.dislike-btn:hover{border-color:#333;color:#555}
-.yt-btn:hover{border-color:#993030;color:#cc6060}
-.google-btn:hover{border-color:#304a99;color:#6080cc}
-.next-btn{width:100%;padding:12px;border-radius:999px;border:0.5px solid var(--border);background:#0d0d0d;color:#555;font-size:14px;cursor:pointer;transition:all .15s;font-family:inherit;margin-top:0}
+.like-btn:hover,.like-btn.active{border-color:#8a3040;color:#b05060}
+.like-btn.active{background:#130608}
+.dislike-btn:hover{border-color:#2a2a2a;color:#484848}
+.yt-btn:hover{border-color:#7a2020;color:#b04040}
+.google-btn:hover{border-color:#20407a;color:#4060b0}
+.deeper-btn:hover{border-color:#3a3a20;color:#8a8040}
+.deeper-btn.loading{opacity:.5;cursor:not-allowed}
+.next-btn{width:100%;padding:12px;border-radius:999px;border:0.5px solid var(--border);background:#0d0d0d;color:#444;font-size:14px;cursor:pointer;transition:all .15s;font-family:inherit}
 .next-btn:hover{background:#181818;color:var(--text-primary);border-color:var(--border-hover)}
-.next-btn:disabled{opacity:.3;cursor:not-allowed}
+.next-btn:disabled{opacity:.25;cursor:not-allowed}
 
-/* LIST VIEWS */
-.list-empty{font-size:14px;color:var(--text-muted);text-align:center;padding:4rem 0}
+/* list views */
+.list-empty{font-size:14px;color:#2e2e2e;text-align:center;padding:4rem 0}
 .list-item{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;width:100%;margin-bottom:8px;position:relative}
-.li-title-en{font-size:14px;font-weight:500;color:#d0d0d0;padding-right:28px}
-.li-title-zh{font-size:12px;color:#484848;margin-top:3px}
-.li-summary{font-size:12px;color:#666;margin-top:8px;line-height:1.6}
-.li-remove{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:#2e2e2e;font-size:14px;line-height:1;font-family:inherit;transition:color .1s}
+.li-title-en{font-size:14px;font-weight:500;color:#c8c8c8;padding-right:28px}
+.li-title-zh{font-size:12px;color:#3e3e3e;margin-top:3px}
+.li-summary{font-size:12px;color:#585858;margin-top:8px;line-height:1.6}
+.li-badge{position:absolute;top:10px;right:32px;font-size:11px;color:#703040}
+.li-remove{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:#282828;font-size:13px;line-height:1;font-family:inherit;transition:color .1s}
 .li-remove:hover{color:#666}
 .li-links{display:flex;gap:6px;margin-top:10px}
-.li-link{font-size:11px;padding:4px 12px;border-radius:999px;border:0.5px solid var(--border);background:transparent;color:#484848;text-decoration:none;transition:all .12s}
-.li-link:hover{border-color:var(--border-hover);color:#aaa}
+.li-link{font-size:11px;padding:4px 12px;border-radius:999px;border:0.5px solid var(--border);background:transparent;color:#3e3e3e;text-decoration:none;transition:all .12s}
+.li-link:hover{border-color:var(--border-hover);color:#999}
 
-/* TOAST */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#aaa;border:0.5px solid #2e2e2e;padding:9px 22px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:100}
+/* search result items */
+.sr-item{background:#111;border:0.5px solid var(--border);border-radius:12px;padding:.875rem 1.1rem;margin-bottom:8px;position:relative;cursor:default}
+.sr-title{font-size:14px;font-weight:500;color:#c8c8c8;padding-right:24px}
+.sr-zh{font-size:11px;color:#3a3a3a;margin-top:2px}
+.sr-excerpt{font-size:12px;color:#505050;margin-top:6px;line-height:1.55}
+.sr-heart{position:absolute;top:10px;right:12px;font-size:13px;color:#703040}
+.sr-cat{font-size:10px;color:#2e2e2e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
 
-@media(max-width:520px){body{padding:1.5rem .75rem 5rem}.topic-title-en{font-size:19px}}
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#181818;color:#999;border:0.5px solid #282828;padding:9px 22px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:300}
 
-/* TITLE on bored screen */
-.app-tagline{font-size:14px;color:#888;letter-spacing:.02em;line-height:1.5;text-align:center}
-.app-title{font-size:36px;font-weight:500;color:#ebebeb;letter-spacing:-.02em;line-height:1.1;text-align:center}
-
-/* LOGO on bored screen */
-#logo-mark{
-  width:72px;height:72px;object-fit:contain;
-  opacity:.22;
-  transition:opacity .3s;
-  margin-bottom:.5rem;
+/* ── RESPONSIVE ── */
+@media(max-width:680px){
+  #cat-sidebar{display:none}
+  #cat-toggle{display:block}
+  #cat-panel{display:block}
+  #main-content{padding:1.5rem .75rem 5rem}
+  .topic-title-en{font-size:19px}
+  .app-title{font-size:28px}
 }
-#logo-mark:hover{opacity:.4}
+@media(min-width:681px){
+  #cat-toggle{display:none}
+  #cat-panel{display:none}
+}
 </style>
 </head>
 <body>
-<div id="app">
 
-  <!-- BORED -->
-  <div id="bored-screen" class="screen active">
-    <img id="logo-mark" src="/logo.png" alt=""/>
-    <div class="app-tagline">a website for bb虾 so she's</div>
-    <div class="app-title">Never Bored</div>
-    <div class="app-tagline">ever again</div>
-    <button class="bored-btn" id="bored-btn" style="margin-top:1.5rem">i'm bored</button>
-    <span class="bored-hint">discover something new</span>
-  </div>
-
-  <!-- TRANSITION (between topics) -->
-  <div id="transition-screen" class="screen">
-    <div class="transition-orb">
-      <div class="orb-ring"></div>
-      <div class="orb-dot"></div>
-    </div>
-    <div class="transition-text" id="transition-text">finding something interesting</div>
-    <div class="transition-count" id="transition-count"></div>
-  </div>
-
-  <!-- MAIN -->
-  <div id="main-screen" class="screen">
-    <div class="tabs">
-      <button class="tab active" id="tab-discover">discover</button>
-      <button class="tab" id="tab-liked">liked</button>
-      <button class="tab" id="tab-history">history</button>
-    </div>
-
-    <div id="discover-view" style="width:100%">
-      <div class="status-bar">
-        <span class="status-tag" id="status-category"></span>
-        <span class="status-badge">
-          <span class="dot" id="status-dot"></span>
-          <span id="status-text"></span>
-        </span>
-      </div>
-
-      <div id="skeleton-card" class="skeleton-card" style="display:none">
-        <div class="skel" style="height:10px;width:50px"></div>
-        <div class="skel" style="height:24px;width:70%;margin-top:10px"></div>
-        <div class="skel" style="height:14px;width:40%"></div>
-        <div style="height:0.5px;background:#181818;margin:16px 0"></div>
-        <div class="skel" style="height:13px;width:100%"></div>
-        <div class="skel" style="height:13px;width:95%"></div>
-        <div class="skel" style="height:13px;width:88%"></div>
-        <div class="skel" style="height:13px;width:92%"></div>
-        <div class="skel" style="height:13px;width:70%"></div>
-      </div>
-
-      <div id="error-card" class="error-card">
-        <div class="error-title">something went wrong</div>
-        <div class="error-msg" id="error-msg"></div>
-        <button class="retry-btn" id="retry-btn">try again</button>
-      </div>
-
-      <div id="topic-card" class="topic-card" style="display:none"></div>
-
-      <div id="action-buttons" style="display:none">
-        <div class="action-row">
-          <button class="action-btn like-btn" id="like-btn">&#9825; like</button>
-          <button class="action-btn dislike-btn" id="dislike-btn">&#10005; not for me</button>
-        </div>
-        <div class="action-row">
-          <button class="action-btn yt-btn" id="yt-btn">&#9654; youtube</button>
-          <button class="action-btn google-btn" id="google-btn">&#8853; google</button>
-        </div>
-        <button class="next-btn" id="next-btn">next topic &#8594;</button>
-      </div>
-    </div>
-
-    <div id="liked-view" style="display:none;width:100%"><div id="liked-list"></div></div>
-    <div id="history-view" style="display:none;width:100%"><div id="history-list"></div></div>
-  </div>
-
+<!-- SEARCH BAR -->
+<div id="search-bar">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <span id="search-bar-text">search your topics</span>
+  <span id="search-bar-streak"></span>
 </div>
+
+<!-- SEARCH OVERLAY -->
+<div id="search-overlay">
+  <div id="search-input-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search-input" type="text" placeholder="search topics you've seen..." autocomplete="off"/>
+    <button id="search-close">&#10005;</button>
+  </div>
+  <div id="search-results"><div id="search-empty">start typing to search</div></div>
+</div>
+
+<!-- LAYOUT -->
+<div id="layout">
+
+  <!-- DESKTOP CATEGORY SIDEBAR -->
+  <nav id="cat-sidebar"></nav>
+
+  <!-- MOBILE CAT TOGGLE + PANEL -->
+  <button id="cat-toggle">categories</button>
+  <div id="cat-panel">
+    <button id="cat-panel-close">&#10005;</button>
+    <div id="cat-panel-list"></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content">
+
+    <!-- BORED SCREEN -->
+    <div id="bored-screen" class="active">
+      <img id="logo-mark" src="/logo.png" alt=""/>
+      <div class="app-tagline">a website for bb虾 so she's</div>
+      <div class="app-title">Never Bored</div>
+      <div class="app-tagline">ever again</div>
+      <button class="bored-btn" id="bored-btn">i'm bored</button>
+      <span class="bored-hint">discover something new</span>
+    </div>
+
+    <!-- TRANSITION SCREEN -->
+    <div id="transition-screen">
+      <div class="transition-orb">
+        <div class="orb-ring"></div>
+        <div class="orb-dot"></div>
+      </div>
+      <div class="transition-text" id="transition-text">finding something interesting</div>
+    </div>
+
+    <!-- MAIN SCREEN -->
+    <div id="main-screen">
+      <div class="tabs">
+        <button class="tab active" id="tab-discover">discover</button>
+        <button class="tab" id="tab-liked">liked</button>
+        <button class="tab" id="tab-history">history</button>
+      </div>
+
+      <div id="discover-view" style="width:100%">
+        <div class="status-bar">
+          <span class="status-tag" id="status-category"></span>
+          <span class="status-badge"><span class="dot" id="status-dot"></span><span id="status-text"></span></span>
+        </div>
+
+        <div id="skeleton-card" class="skeleton-card" style="display:none">
+          <div class="skel" style="height:10px;width:50px"></div>
+          <div class="skel" style="height:24px;width:68%;margin-top:10px"></div>
+          <div class="skel" style="height:14px;width:38%"></div>
+          <div style="height:0.5px;background:#181818;margin:16px 0"></div>
+          <div class="skel" style="height:13px;width:100%"></div>
+          <div class="skel" style="height:13px;width:94%"></div>
+          <div class="skel" style="height:13px;width:88%"></div>
+          <div class="skel" style="height:13px;width:91%"></div>
+          <div class="skel" style="height:13px;width:72%"></div>
+        </div>
+
+        <div id="error-card" class="error-card">
+          <div class="error-title">something went wrong</div>
+          <div class="error-msg" id="error-msg"></div>
+          <button class="retry-btn" id="retry-btn">try again</button>
+        </div>
+
+        <div id="topic-card" class="topic-card" style="display:none"></div>
+        <div id="deeper-card" class="deeper-card"></div>
+
+        <div id="action-buttons" style="display:none">
+          <div class="action-row">
+            <button class="action-btn like-btn" id="like-btn">&#9825; like</button>
+            <button class="action-btn dislike-btn" id="dislike-btn">&#10005; not for me</button>
+          </div>
+          <div class="action-row">
+            <button class="action-btn yt-btn" id="yt-btn">&#9654; youtube</button>
+            <button class="action-btn google-btn" id="google-btn">&#8853; google</button>
+          </div>
+          <div class="action-row">
+            <button class="action-btn deeper-btn" id="deeper-btn">&#8964; go deeper</button>
+            <button class="next-btn" id="next-btn" style="flex:1;margin:0">next topic &#8594;</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="liked-view" style="display:none;width:100%"><div id="liked-list"></div></div>
+      <div id="history-view" style="display:none;width:100%"><div id="history-list"></div></div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /layout -->
+
 <div id="toast"></div>
 
 <script>
 (function() {
-  // ── PERSISTENCE via localStorage ──
-  function load(key, def) {
-    try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e) { return def; }
-  }
-  function save(key, val) {
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
-  }
 
-  var queue = [];
-  var current = null;
-  var fetching = false;
-  var topicCount = 0;
+// ── CATEGORIES ──
+var CATS = [
+  { id:'all',       en:'All',         zh:'全部' },
+  { id:'science',   en:'Science',     zh:'科学' },
+  { id:'history',   en:'History',     zh:'历史' },
+  { id:'crime',     en:'Crime',       zh:'犯罪' },
+  { id:'nature',    en:'Nature',      zh:'自然' },
+  { id:'psychology',en:'Psychology',  zh:'心理' },
+  { id:'technology',en:'Technology',  zh:'科技' },
+  { id:'art',       en:'Art & Music', zh:'艺术' },
+  { id:'weird',     en:'Weird',       zh:'奇异' }
+];
 
-  // Persisted state
-  var allSeen = load('nb_seen', []);      // titles seen ever (for dedup)
-  var disliked = load('nb_disliked', []); // titles never to show again
-  var liked = load('nb_liked', []);       // liked topic objects
-  var history = load('nb_history', []);   // all viewed topics (newest first)
+// ── PERSISTENCE ──
+function load(k, d) { try { var v=localStorage.getItem(k); return v?JSON.parse(v):d; } catch(e){return d;} }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 
-  // ── WIRE UP ──
-  document.getElementById('bored-btn').addEventListener('click', start);
-  document.getElementById('retry-btn').addEventListener('click', retryFetch);
-  document.getElementById('like-btn').addEventListener('click', likeTopic);
-  document.getElementById('dislike-btn').addEventListener('click', dislikeTopic);
-  document.getElementById('yt-btn').addEventListener('click', openYT);
-  document.getElementById('google-btn').addEventListener('click', openGoogle);
-  document.getElementById('next-btn').addEventListener('click', onNextClick);
-  document.getElementById('tab-discover').addEventListener('click', function(){ switchTab('discover',this); });
-  document.getElementById('tab-liked').addEventListener('click', function(){ switchTab('liked',this); });
-  document.getElementById('tab-history').addEventListener('click', function(){ switchTab('history',this); });
+var queue = [];
+var current = null;
+var fetching = false;
+var activeCategory = load('nb_cat', 'all');
+var totalSeen = load('nb_total', 0);
+var allSeen = load('nb_seen', []);        // titles only, up to 1000
+var disliked = load('nb_disliked', []);   // titles only
+var liked = load('nb_liked', []);         // full objects, up to 300
+var history = load('nb_history', []);     // full objects, up to 500
 
-  // ── START ──
-  function start() {
+// ── BUILD CATEGORY UI ──
+function buildCats() {
+  var sidebar = document.getElementById('cat-sidebar');
+  var panel = document.getElementById('cat-panel-list');
+  sidebar.innerHTML = '';
+  panel.innerHTML = '';
+  CATS.forEach(function(c) {
+    [sidebar, panel].forEach(function(container) {
+      var btn = document.createElement('button');
+      btn.className = 'cat-pill' + (c.id === activeCategory ? ' active' : '');
+      btn.dataset.id = c.id;
+      btn.innerHTML = '<span class="cat-pill-en">' + c.en + '</span><span class="cat-pill-zh">' + c.zh + '</span>';
+      btn.addEventListener('click', function() { selectCategory(c.id); });
+      container.appendChild(btn);
+    });
+  });
+}
+
+function selectCategory(id) {
+  if (id === activeCategory) return;
+  activeCategory = id;
+  save('nb_cat', id);
+  // update UI
+  document.querySelectorAll('.cat-pill').forEach(function(p) {
+    p.classList.toggle('active', p.dataset.id === id);
+  });
+  // flush queue and re-fetch
+  queue = [];
+  closeCatPanel();
+  if (document.getElementById('main-screen').classList.contains('active')) {
     showScreen('transition');
-    setTransitionText('finding something interesting', '');
-    fetchBatch(2).then(function() { showNextTopic(true); });
+    setTransitionText('switching category');
+    fetchBatch(2).then(function() { showNextTopic(); });
   }
+}
 
-  // ── FETCH BATCH (streaming) ──
-  function fetchBatch(count) {
-    if (fetching) return Promise.resolve();
-    fetching = true;
-    setFetchStatus('fetching');
-    count = count || 2;
+// ── CATEGORY PANEL (mobile) ──
+document.getElementById('cat-toggle').addEventListener('click', function() {
+  document.getElementById('cat-panel').classList.add('open');
+});
+document.getElementById('cat-panel-close').addEventListener('click', closeCatPanel);
+function closeCatPanel() { document.getElementById('cat-panel').classList.remove('open'); }
 
-    return new Promise(function(resolve) {
-      var es = new EventSource('/api/topics/stream?' + new URLSearchParams({
-        exclude: JSON.stringify(allSeen.slice(0, 60)),
-        count: count
-      }));
+// ── SEARCH ──
+document.getElementById('search-bar').addEventListener('click', openSearch);
+document.getElementById('search-close').addEventListener('click', closeSearch);
+document.getElementById('search-input').addEventListener('input', doSearch);
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeSearch();
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
+});
 
-      // Reopen as POST via fetch+ReadableStream since EventSource only does GET
-      es.close();
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  setTimeout(function() { document.getElementById('search-input').focus(); }, 50);
+}
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').innerHTML = '<div id="search-empty">start typing to search</div>';
+}
 
-      fetch('/api/topics/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exclude: allSeen.slice(0, 60), count: count })
-      }).then(function(res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        var reader = res.body.getReader();
-        var decoder = new TextDecoder();
-        var buf = '';
+function doSearch() {
+  var q = document.getElementById('search-input').value.trim().toLowerCase();
+  var el = document.getElementById('search-results');
+  if (!q) { el.innerHTML = '<div id="search-empty">start typing to search</div>'; return; }
 
-        function pump() {
-          return reader.read().then(function(result) {
-            if (result.done) { fetching = false; setFetchStatus('idle'); resolve(); return; }
-            buf += decoder.decode(result.value, { stream: true });
-            var lines = buf.split('\n');
-            buf = lines.pop(); // keep partial line
-            for (var i = 0; i < lines.length; i++) {
-              var line = lines[i].trim();
-              if (!line.startsWith('data:')) continue;
-              try {
-                var payload = JSON.parse(line.slice(5).trim());
-                if (payload.topics) {
-                  var fresh = payload.topics.filter(function(t) {
-                    return disliked.indexOf(t.title_en) === -1 && allSeen.indexOf(t.title_en) === -1;
-                  });
-                  queue = queue.concat(fresh);
-                }
-                if (payload.error) {
-                  showError(payload.error);
-                }
-              } catch(e) {}
-            }
-            return pump();
+  // Search through history (all seen topics)
+  var likedTitles = liked.map(function(l) { return l.title_en; });
+  var results = history.filter(function(t) {
+    return t.title_en.toLowerCase().indexOf(q) > -1 ||
+           (t.title_zh && t.title_zh.indexOf(q) > -1) ||
+           (t.summary_en && t.summary_en.toLowerCase().indexOf(q) > -1) ||
+           (t.category && t.category.toLowerCase().indexOf(q) > -1);
+  });
+
+  if (!results.length) { el.innerHTML = '<div id="search-empty" style="color:#2a2a2a">no results for "' + esc(q) + '"</div>'; return; }
+
+  el.innerHTML = results.slice(0, 40).map(function(t) {
+    var isLiked = likedTitles.indexOf(t.title_en) > -1;
+    var excerpt = (t.summary_en || '').slice(0, 120) + '...';
+    return '<div class="sr-item">' +
+      '<div class="sr-cat">' + esc(t.category || '') + '</div>' +
+      '<div class="sr-title">' + esc(t.title_en) + (isLiked ? '<span class="sr-heart"> &#9829;</span>' : '') + '</div>' +
+      '<div class="sr-zh">' + esc(t.title_zh || '') + '</div>' +
+      '<div class="sr-excerpt">' + esc(excerpt) + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// ── STREAK ──
+function updateStreak() {
+  var el = document.getElementById('search-bar-streak');
+  if (el) el.textContent = totalSeen > 0 ? totalSeen + ' explored' : '';
+}
+
+// ── WIRE UP BUTTONS ──
+document.getElementById('bored-btn').addEventListener('click', start);
+document.getElementById('retry-btn').addEventListener('click', retryFetch);
+document.getElementById('like-btn').addEventListener('click', likeTopic);
+document.getElementById('dislike-btn').addEventListener('click', dislikeTopic);
+document.getElementById('yt-btn').addEventListener('click', openYT);
+document.getElementById('google-btn').addEventListener('click', openGoogle);
+document.getElementById('deeper-btn').addEventListener('click', goDeeper);
+document.getElementById('next-btn').addEventListener('click', onNextClick);
+document.getElementById('tab-discover').addEventListener('click', function() { switchTab('discover',this); });
+document.getElementById('tab-liked').addEventListener('click', function() { switchTab('liked',this); });
+document.getElementById('tab-history').addEventListener('click', function() { switchTab('history',this); });
+
+// ── INIT ──
+buildCats();
+updateStreak();
+
+// ── START ──
+function start() {
+  showScreen('transition');
+  setTransitionText('finding something interesting');
+  fetchBatch(2).then(function() { showNextTopic(); });
+}
+
+// ── FETCH BATCH ──
+function fetchBatch(count) {
+  if (fetching) return Promise.resolve();
+  fetching = true;
+  setFetchStatus('fetching');
+
+  return new Promise(function(resolve) {
+    fetch('/api/topics/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        exclude: allSeen.slice(-80),
+        count: count || 2,
+        category: activeCategory
+      })
+    }).then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = '';
+      function pump() {
+        return reader.read().then(function(r) {
+          if (r.done) { fetching = false; setFetchStatus('idle'); resolve(); return; }
+          buf += decoder.decode(r.value, { stream: true });
+          var lines = buf.split('\n');
+          buf = lines.pop();
+          lines.forEach(function(line) {
+            if (!line.startsWith('data:')) return;
+            try {
+              var payload = JSON.parse(line.slice(5).trim());
+              if (payload.topics) {
+                var fresh = payload.topics.filter(function(t) {
+                  return disliked.indexOf(t.title_en) === -1 && allSeen.indexOf(t.title_en) === -1;
+                });
+                queue = queue.concat(fresh);
+              }
+              if (payload.error) showError(payload.error);
+            } catch(e) {}
           });
-        }
-        return pump();
-      }).catch(function(err) {
-        fetching = false;
-        setFetchStatus('idle');
-        showError(err.message);
-        resolve();
-      });
-    });
-  }
-
-  // ── NEXT TOPIC FLOW ──
-  function onNextClick() {
-    showScreen('transition');
-    setTransitionText('loading next topic', '');
-    var waitMs = 4000; // 4 seconds meaningful pause
-    setTimeout(function() { showNextTopic(false); }, waitMs);
-  }
-
-  function showNextTopic(firstTime) {
-    if (queue.length === 0) {
-      if (fetching) {
-        setTransitionText('almost there', '');
-        setTimeout(function() { showNextTopic(firstTime); }, 500);
-        return;
+          return pump();
+        });
       }
-      // Re-fetch if queue empty
-      fetchBatch(2).then(function() { showNextTopic(firstTime); });
-      return;
-    }
-
-    var topic = queue.shift();
-    current = topic;
-    topicCount++;
-    allSeen.push(topic.title_en);
-    save('nb_seen', allSeen.slice(-200)); // keep last 200
-    history.unshift(topic);
-    save('nb_history', history.slice(0, 100));
-
-    // Pre-fetch next batch when queue runs low
-    if (queue.length < 2 && !fetching) fetchBatch(2);
-
-    showScreen('main');
-    typewriteTopic(topic);
-  }
-
-  // ── TYPEWRITER EFFECT ──
-  function typewriteTopic(t) {
-    document.getElementById('skeleton-card').style.display = 'none';
-    document.getElementById('error-card').style.display = 'none';
-    var card = document.getElementById('topic-card');
-    card.style.display = 'block';
-    document.getElementById('action-buttons').style.display = 'block';
-    document.getElementById('status-category').textContent = t.category;
-
-    // Set like button state
-    var lb = document.getElementById('like-btn');
-    var isLiked = liked.some(function(l){ return l.title_en === t.title_en; });
-    lb.classList.toggle('active', isLiked);
-    lb.innerHTML = isLiked ? '&#9829; liked' : '&#9825; like';
-
-    // Build card with placeholder spans we'll fill in
-    card.innerHTML =
-      '<div class="topic-category">' + esc(t.category) + '</div>' +
-      '<div class="topic-title-en">' + esc(t.title_en) + '</div>' +
-      '<div class="topic-title-zh">' + esc(t.title_zh) + '</div>' +
-      '<div class="divider"></div>' +
-      '<div class="summary-en" id="tw-sum-en"></div>' +
-      '<div class="summary-zh" id="tw-sum-zh"></div>' +
-      '<div class="fun-label">why it\'s fascinating</div>' +
-      '<div class="fun-en" id="tw-fun-en"></div>' +
-      '<div class="fun-zh" id="tw-fun-zh"></div>';
-
-    // Typewrite each section sequentially
-    var sections = [
-      { id: 'tw-sum-en', text: t.summary_en },
-      { id: 'tw-sum-zh', text: t.summary_zh },
-      { id: 'tw-fun-en', text: t.fun_en },
-      { id: 'tw-fun-zh', text: t.fun_zh }
-    ];
-
-    typewriteSections(sections, 0);
-    setFetchStatus('idle');
-  }
-
-  function typewriteSections(sections, idx) {
-    if (idx >= sections.length) return;
-    var s = sections[idx];
-    var el = document.getElementById(s.id);
-    if (!el) return;
-    typewriteEl(el, s.text, 12, function() {
-      typewriteSections(sections, idx + 1);
+      return pump();
+    }).catch(function(err) {
+      fetching = false; setFetchStatus('idle');
+      showError(err.message); resolve();
     });
-  }
+  });
+}
 
-  function typewriteEl(el, text, speed, done) {
-    el.textContent = '';
-    var cursor = document.createElement('span');
-    cursor.className = 'cursor';
-    el.appendChild(cursor);
-    var i = 0;
-    var chars = text.split('');
-    function step() {
-      if (i >= chars.length) {
-        cursor.remove();
-        if (done) done();
-        return;
-      }
-      // Insert before cursor
-      el.insertBefore(document.createTextNode(chars[i]), cursor);
-      i++;
-      setTimeout(step, speed + Math.random() * 8);
-    }
-    step();
-  }
+// ── NEXT TOPIC FLOW ──
+function onNextClick() {
+  // Hide deeper card
+  var dc = document.getElementById('deeper-card');
+  dc.style.display = 'none'; dc.innerHTML = '';
+  showScreen('transition');
+  setTransitionText('loading next topic');
+  setTimeout(function() { showNextTopic(); }, 4000);
+}
 
-  // ── SCREENS ──
-  function showScreen(name) {
-    document.getElementById('bored-screen').classList.remove('active');
-    document.getElementById('transition-screen').classList.remove('active');
-    document.getElementById('main-screen').classList.remove('active');
-    document.getElementById(name + '-screen').classList.add('active');
+function showNextTopic() {
+  if (queue.length === 0) {
+    if (fetching) { setTimeout(showNextTopic, 400); return; }
+    fetchBatch(2).then(showNextTopic); return;
   }
+  var topic = queue.shift();
+  current = topic;
+  totalSeen++;
+  save('nb_total', totalSeen);
+  allSeen.push(topic.title_en);
+  if (allSeen.length > 1000) allSeen = allSeen.slice(-1000);
+  save('nb_seen', allSeen);
+  history.unshift(topic);
+  if (history.length > 500) history = history.slice(0, 500);
+  save('nb_history', history);
+  updateStreak();
 
-  function setTransitionText(main, sub) {
-    document.getElementById('transition-text').textContent = main;
-    document.getElementById('transition-count').textContent = sub;
-  }
+  if (queue.length < 2 && !fetching) fetchBatch(2);
 
-  function showSkeleton() {
-    document.getElementById('skeleton-card').style.display = 'block';
-    document.getElementById('error-card').style.display = 'none';
-    document.getElementById('topic-card').style.display = 'none';
-    document.getElementById('action-buttons').style.display = 'none';
-  }
+  showScreen('main');
+  typewriteTopic(topic);
+}
 
-  function showError(msg) {
-    showScreen('main');
-    document.getElementById('skeleton-card').style.display = 'none';
-    document.getElementById('error-card').style.display = 'block';
-    document.getElementById('topic-card').style.display = 'none';
-    document.getElementById('action-buttons').style.display = 'none';
-    document.getElementById('error-msg').textContent = msg;
-  }
+// ── TYPEWRITER ──
+function typewriteTopic(t) {
+  document.getElementById('skeleton-card').style.display = 'none';
+  document.getElementById('error-card').style.display = 'none';
+  var card = document.getElementById('topic-card');
+  card.style.display = 'block';
+  document.getElementById('action-buttons').style.display = 'block';
+  document.getElementById('status-category').textContent = t.category || '';
 
-  function retryFetch() {
-    showScreen('transition');
-    setTransitionText('trying again', '');
-    fetchBatch(2).then(function() { showNextTopic(true); });
-  }
+  var lb = document.getElementById('like-btn');
+  var isLiked = liked.some(function(l){ return l.title_en === t.title_en; });
+  lb.classList.toggle('active', isLiked);
+  lb.innerHTML = isLiked ? '&#9829; liked' : '&#9825; like';
 
-  // ── LIKE / DISLIKE ──
-  function likeTopic() {
-    if (!current) return;
-    var lb = document.getElementById('like-btn');
-    var idx = liked.findIndex(function(l){ return l.title_en === current.title_en; });
-    if (idx > -1) {
-      liked.splice(idx, 1);
-      lb.classList.remove('active');
-      lb.innerHTML = '&#9825; like';
-      showToast('removed from liked');
-    } else {
-      liked.unshift(current);
-      lb.classList.add('active');
-      lb.innerHTML = '&#9829; liked';
-      showToast('saved!');
-    }
-    save('nb_liked', liked);
-  }
+  card.innerHTML =
+    '<div class="topic-category">' + esc(t.category) + '</div>' +
+    '<div class="topic-title-en">' + esc(t.title_en) + '</div>' +
+    '<div class="topic-title-zh">' + esc(t.title_zh) + '</div>' +
+    '<div class="divider"></div>' +
+    '<div class="summary-en" id="tw-sen"></div>' +
+    '<div class="summary-zh" id="tw-szh"></div>' +
+    '<div class="fun-label">why it\'s fascinating</div>' +
+    '<div class="fun-en" id="tw-fen"></div>' +
+    '<div class="fun-zh" id="tw-fzh"></div>';
 
-  function dislikeTopic() {
-    if (!current) return;
-    disliked.push(current.title_en);
-    save('nb_disliked', disliked);
-    queue = queue.filter(function(t){ return disliked.indexOf(t.title_en) === -1; });
-    showToast('never again');
-    onNextClick();
-  }
+  typewriteSections([
+    { id:'tw-sen', text: t.summary_en },
+    { id:'tw-szh', text: t.summary_zh },
+    { id:'tw-fen', text: t.fun_en },
+    { id:'tw-fzh', text: t.fun_zh }
+  ], 0);
+  setFetchStatus('idle');
+}
 
-  // ── LINKS ──
-  function openYT() {
-    if (!current) return;
-    window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(current.search), '_blank');
-  }
-  function openGoogle() {
-    if (!current) return;
-    window.open('https://www.google.com/search?q=' + encodeURIComponent(current.title_en), '_blank');
-  }
+function typewriteSections(sections, idx) {
+  if (idx >= sections.length) return;
+  var s = sections[idx];
+  var el = document.getElementById(s.id);
+  if (!el) return;
+  typewriteEl(el, s.text || '', 11, function() { typewriteSections(sections, idx+1); });
+}
 
-  // ── TABS ──
-  function switchTab(tab, btn) {
-    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-    btn.classList.add('active');
-    document.getElementById('discover-view').style.display = tab === 'discover' ? 'block' : 'none';
-    document.getElementById('liked-view').style.display = tab === 'liked' ? 'block' : 'none';
-    document.getElementById('history-view').style.display = tab === 'history' ? 'block' : 'none';
-    if (tab === 'liked') renderLiked();
-    if (tab === 'history') renderHistory();
+function typewriteEl(el, text, speed, done) {
+  el.textContent = '';
+  var cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  el.appendChild(cursor);
+  var i = 0, chars = text.split('');
+  function step() {
+    if (i >= chars.length) { cursor.remove(); if (done) done(); return; }
+    el.insertBefore(document.createTextNode(chars[i]), cursor);
+    i++;
+    setTimeout(step, speed + Math.random()*7);
   }
+  step();
+}
 
-  function makeItem(t, removeIdx) {
-    return '<div class="list-item">' +
-      (removeIdx !== null ? '<button class="li-remove" data-idx="' + removeIdx + '">&#10005;</button>' : '') +
-      '<div class="li-title-en">' + esc(t.title_en) + '</div>' +
-      '<div class="li-title-zh">' + esc(t.title_zh) + '</div>' +
-      '<div class="li-summary">' + esc((t.summary_en || '').slice(0, 160)) + '...</div>' +
-      '<div class="li-links">' +
-        '<a class="li-link" href="https://www.youtube.com/results?search_query=' + encodeURIComponent(t.search) + '" target="_blank">&#9654; youtube</a>' +
-        '<a class="li-link" href="https://www.google.com/search?q=' + encodeURIComponent(t.title_en) + '" target="_blank">&#8853; google</a>' +
-      '</div></div>';
+// ── GO DEEPER ──
+function goDeeper() {
+  if (!current) return;
+  var btn = document.getElementById('deeper-btn');
+  var dc = document.getElementById('deeper-card');
+  if (btn.classList.contains('loading')) return;
+  btn.classList.add('loading');
+  btn.textContent = '... loading';
+  dc.style.display = 'none'; dc.innerHTML = '';
+
+  fetch('/api/deeper', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title_en: current.title_en,
+      title_zh: current.title_zh,
+      summary_en: current.summary_en
+    })
+  }).then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.classList.remove('loading');
+    btn.innerHTML = '&#8964; go deeper';
+    if (data.error) { showToast('deeper failed: ' + data.error); return; }
+    dc.innerHTML =
+      '<div class="deeper-label">deeper dive</div>' +
+      '<div class="deeper-text" id="tw-deep-en"></div>' +
+      '<div class="deeper-text-zh" id="tw-deep-zh"></div>' +
+      (data.rabbit_hole && data.rabbit_hole.length ?
+        '<div class="rabbit-label">keep exploring</div>' +
+        '<div class="rabbit-hole">' +
+        data.rabbit_hole.map(function(q) {
+          return '<a class="rabbit-link" href="https://www.google.com/search?q=' +
+            encodeURIComponent(q) + '" target="_blank">&#8599; ' + esc(q) + '</a>';
+        }).join('') + '</div>'
+      : '');
+    dc.style.display = 'block';
+    typewriteSections([
+      { id:'tw-deep-en', text: data.deep_en || '' },
+      { id:'tw-deep-zh', text: data.deep_zh || '' }
+    ], 0);
+  }).catch(function(err) {
+    btn.classList.remove('loading');
+    btn.innerHTML = '&#8964; go deeper';
+    showToast('failed to load deeper info');
+  });
+}
+
+// ── SCREENS ──
+function showScreen(name) {
+  ['bored','transition','main'].forEach(function(s) {
+    var el = document.getElementById(s + '-screen');
+    if (el) el.classList.remove('active');
+  });
+  var target = document.getElementById(name + '-screen');
+  if (target) target.classList.add('active');
+}
+
+function setTransitionText(t) {
+  var el = document.getElementById('transition-text');
+  if (el) el.textContent = t;
+}
+
+function showError(msg) {
+  showScreen('main');
+  document.getElementById('skeleton-card').style.display = 'none';
+  document.getElementById('error-card').style.display = 'block';
+  document.getElementById('topic-card').style.display = 'none';
+  document.getElementById('action-buttons').style.display = 'none';
+  document.getElementById('error-msg').textContent = msg;
+}
+
+function retryFetch() {
+  showScreen('transition');
+  setTransitionText('trying again');
+  fetchBatch(2).then(showNextTopic);
+}
+
+// ── LIKE / DISLIKE ──
+function likeTopic() {
+  if (!current) return;
+  var lb = document.getElementById('like-btn');
+  var idx = liked.findIndex(function(l){ return l.title_en === current.title_en; });
+  if (idx > -1) {
+    liked.splice(idx, 1);
+    lb.classList.remove('active'); lb.innerHTML = '&#9825; like';
+    showToast('removed from liked');
+  } else {
+    liked.unshift(current);
+    if (liked.length > 300) liked = liked.slice(0, 300);
+    lb.classList.add('active'); lb.innerHTML = '&#9829; liked';
+    showToast('saved!');
   }
+  save('nb_liked', liked);
+}
 
-  function renderLiked() {
-    var el = document.getElementById('liked-list');
-    if (!liked.length) { el.innerHTML = '<div class="list-empty">no liked topics yet</div>'; return; }
-    el.innerHTML = liked.map(function(t,i){ return makeItem(t, i); }).join('');
-    el.querySelectorAll('.li-remove').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        liked.splice(parseInt(this.dataset.idx), 1);
-        save('nb_liked', liked);
-        renderLiked();
-      });
+function dislikeTopic() {
+  if (!current) return;
+  disliked.push(current.title_en);
+  if (disliked.length > 1000) disliked = disliked.slice(-1000);
+  save('nb_disliked', disliked);
+  queue = queue.filter(function(t){ return disliked.indexOf(t.title_en) === -1; });
+  showToast('never again');
+  onNextClick();
+}
+
+function openYT() {
+  if (current) window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(current.search), '_blank');
+}
+function openGoogle() {
+  if (current) window.open('https://www.google.com/search?q=' + encodeURIComponent(current.title_en), '_blank');
+}
+
+// ── TABS ──
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('discover-view').style.display = tab==='discover'?'block':'none';
+  document.getElementById('liked-view').style.display = tab==='liked'?'block':'none';
+  document.getElementById('history-view').style.display = tab==='history'?'block':'none';
+  if (tab==='liked') renderLiked();
+  if (tab==='history') renderHistory();
+}
+
+function makeItem(t, removeIdx) {
+  var isLiked = liked.some(function(l){ return l.title_en === t.title_en; });
+  return '<div class="list-item">' +
+    (removeIdx !== null ? '<button class="li-remove" data-idx="' + removeIdx + '">&#10005;</button>' : '') +
+    (isLiked && removeIdx === null ? '<span class="li-badge">&#9829;</span>' : '') +
+    '<div class="li-title-en">' + esc(t.title_en) + '</div>' +
+    '<div class="li-title-zh">' + esc(t.title_zh||'') + '</div>' +
+    '<div class="li-summary">' + esc((t.summary_en||'').slice(0,140)) + '...</div>' +
+    '<div class="li-links">' +
+      '<a class="li-link" href="https://www.youtube.com/results?search_query=' + encodeURIComponent(t.search||t.title_en) + '" target="_blank">&#9654; youtube</a>' +
+      '<a class="li-link" href="https://www.google.com/search?q=' + encodeURIComponent(t.title_en) + '" target="_blank">&#8853; google</a>' +
+    '</div></div>';
+}
+
+function renderLiked() {
+  var el = document.getElementById('liked-list');
+  if (!liked.length) { el.innerHTML = '<div class="list-empty">no liked topics yet</div>'; return; }
+  el.innerHTML = liked.map(function(t,i){ return makeItem(t,i); }).join('');
+  el.querySelectorAll('.li-remove').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      liked.splice(parseInt(this.dataset.idx),1);
+      save('nb_liked', liked); renderLiked();
     });
-  }
+  });
+}
 
-  function renderHistory() {
-    var el = document.getElementById('history-list');
-    if (!history.length) { el.innerHTML = '<div class="list-empty">no history yet</div>'; return; }
-    el.innerHTML = history.map(function(t){ return makeItem(t, null); }).join('');
-  }
+function renderHistory() {
+  var el = document.getElementById('history-list');
+  if (!history.length) { el.innerHTML = '<div class="list-empty">no history yet</div>'; return; }
+  el.innerHTML = history.map(function(t){ return makeItem(t,null); }).join('');
+}
 
-  // ── STATUS ──
-  function setFetchStatus(state) {
-    var dot = document.getElementById('status-dot');
-    var txt = document.getElementById('status-text');
-    if (!dot || !txt) return;
-    if (state === 'fetching') { dot.classList.add('pulse'); txt.textContent = 'loading more...'; }
-    else { dot.classList.remove('pulse'); txt.textContent = queue.length + ' ready'; }
-  }
+// ── STATUS ──
+function setFetchStatus(state) {
+  var dot = document.getElementById('status-dot');
+  var txt = document.getElementById('status-text');
+  if (!dot||!txt) return;
+  if (state==='fetching') { dot.classList.add('pulse'); txt.textContent='loading...'; }
+  else { dot.classList.remove('pulse'); txt.textContent = queue.length + ' ready'; }
+}
 
-  // ── HELPERS ──
-  function esc(s) {
-    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-  var toastTimer;
-  function showToast(msg) {
-    var t = document.getElementById('toast');
-    t.textContent = msg; t.style.opacity = '1';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ t.style.opacity = '0'; }, 2000);
-  }
+var toastTimer;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.style.opacity='0'; }, 2000);
+}
 
 })();
 </script>
