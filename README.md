@@ -7,3 +7,4 @@ Bilingual (English + Traditional Chinese) random topic discovery app. Generates 
 - **Backend**: Node.js + Express
 - **AI**: Anthropic Claude (claude-opus-4-5)
 - **Frontend**: Vanilla HTML/CSS/JS (no framework)
+- **Hosted on**: Render
