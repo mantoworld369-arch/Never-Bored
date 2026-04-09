@@ -46,42 +46,66 @@ app.post("/api/topics", async (req, res) => {
   try {
     console.log("Calling OpenRouter for " + count + " topics");
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + process.env.OPENROUTER_API_KEY,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://never-bored.onrender.com",
-        "X-Title": "Never Bored"
-      },
-      body: JSON.stringify({
-        model: "meta-llama/llama-3.3-70b-instruct:free",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt }
-        ],
-        max_tokens: count <= 5 ? 2500 : 8000,
-        temperature: 1.0
-      })
-    });
+    // Free model fallback chain — tries each until one works
+    const MODELS = [
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "google/gemma-3-27b-it:free",
+      "mistralai/mistral-7b-instruct:free",
+      "qwen/qwen3-8b:free"
+    ];
 
-    const data = await response.json();
-    console.log("OpenRouter status:", response.status);
+    let topics = null;
+    let lastError = "All models failed";
 
-    if (!response.ok) {
-      const errMsg = (data.error && data.error.message) ? data.error.message : JSON.stringify(data);
-      console.error("OpenRouter error:", errMsg);
-      return res.status(500).json({ error: "OpenRouter " + response.status + ": " + errMsg });
+    for (const model of MODELS) {
+      try {
+        console.log("Trying model:", model);
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + process.env.OPENROUTER_API_KEY,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://never-bored.onrender.com",
+            "X-Title": "Never Bored"
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content: userPrompt }
+            ],
+            max_tokens: count <= 5 ? 2500 : 8000,
+            temperature: 1.0
+          })
+        });
+
+        const data = await response.json();
+        console.log(model, "status:", response.status);
+
+        if (!response.ok) {
+          const errMsg = (data.error && data.error.message) ? data.error.message : JSON.stringify(data);
+          console.warn(model, "failed:", errMsg);
+          lastError = errMsg;
+          continue; // try next model
+        }
+
+        const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ? data.choices[0].message.content : "";
+        if (!raw) { lastError = model + " returned empty content"; continue; }
+
+        const clean = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+        const parsed = JSON.parse(clean);
+        if (!Array.isArray(parsed) || parsed.length === 0) { lastError = "Invalid array from " + model; continue; }
+
+        topics = parsed;
+        console.log("Success with", model, "- topics:", topics.length);
+        break;
+      } catch (modelErr) {
+        console.warn(model, "threw:", modelErr.message);
+        lastError = modelErr.message;
+      }
     }
 
-    const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ? data.choices[0].message.content : "";
-    console.log("Raw response length:", raw.length);
-
-    const clean = raw.replace(/```json/g, "").replace(/```/g, "").trim();
-    const topics = JSON.parse(clean);
-
-    if (!Array.isArray(topics) || topics.length === 0) throw new Error("Response was not a valid array");
-    console.log("Topics generated:", topics.length);
+    if (!topics) throw new Error(lastError);
     res.json({ topics });
   } catch (err) {
     console.error("Error:", err.message);
