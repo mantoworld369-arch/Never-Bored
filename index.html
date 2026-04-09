@@ -186,15 +186,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 .cursor{display:inline-block;width:2px;height:.9em;background:#555;margin-left:2px;vertical-align:text-bottom;animation:blink .7s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* ── DEEPER CARD ── */
-.deeper-card{background:#0e0e0e;border:0.5px solid #1e1e1e;border-radius:16px;padding:1.5rem;width:100%;margin-bottom:.875rem;display:none}
-.deeper-label{font-size:10px;color:#2e2e2e;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
-.deeper-text{font-size:14px;line-height:1.85;color:#aaa}
-.deeper-text-zh{font-size:13px;line-height:1.85;color:#424242;margin-top:.75rem}
-.rabbit-label{font-size:10px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.1em;margin:1rem 0 8px}
-.rabbit-hole{display:flex;flex-direction:column;gap:6px}
-.rabbit-link{font-size:12px;color:#3a3a3a;cursor:pointer;text-decoration:none;transition:color .15s;padding:6px 10px;border:0.5px solid #1a1a1a;border-radius:8px;background:transparent}
-.rabbit-link:hover{color:#888;border-color:#2e2e2e}
+
 
 /* skeleton */
 .skeleton-card{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;margin-bottom:.875rem}
@@ -217,8 +209,8 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 .dislike-btn:hover{border-color:#2a2a2a;color:#484848}
 .yt-btn:hover{border-color:#7a2020;color:#b04040}
 .google-btn:hover{border-color:#20407a;color:#4060b0}
-.deeper-btn:hover{border-color:#3a3a20;color:#8a8040}
-.deeper-btn.loading{opacity:.5;cursor:not-allowed}
+
+
 .next-btn{width:100%;padding:12px;border-radius:999px;border:0.5px solid var(--border);background:#0d0d0d;color:#444;font-size:14px;cursor:pointer;transition:all .15s;font-family:inherit}
 .next-btn:hover{background:#181818;color:var(--text-primary);border-color:var(--border-hover)}
 .next-btn:disabled{opacity:.25;cursor:not-allowed}
@@ -245,6 +237,29 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 .sr-cat{font-size:10px;color:#2e2e2e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
 
 /* toast */
+/* bottom nav */
+#bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:70;
+  justify-content:center;
+  padding:8px 1rem 12px;
+  background:linear-gradient(to top, rgba(10,10,10,1) 60%, rgba(10,10,10,0));
+  pointer-events:none;
+}
+#bottom-nav.visible{display:flex}
+.bottom-tabs{
+  display:flex;gap:3px;
+  background:#0e0e0e;border-radius:999px;padding:4px;
+  border:0.5px solid var(--border);
+  pointer-events:all;
+}
+.bottom-tab{
+  padding:7px 22px;font-size:13px;border-radius:999px;
+  cursor:pointer;color:#444;background:transparent;
+  border:none;font-family:inherit;transition:all .15s;
+}
+.bottom-tab.active{background:#1e1e1e;color:var(--text-primary)}
+
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#181818;color:#999;border:0.5px solid #282828;padding:9px 22px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:300}
 
 /* ── RESPONSIVE ── */
@@ -352,7 +367,6 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
         </div>
 
         <div id="topic-card" class="topic-card" style="display:none"></div>
-        <div id="deeper-card" class="deeper-card"></div>
 
         <div id="action-buttons" style="display:none">
           <div class="action-row">
@@ -363,10 +377,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
             <button class="action-btn yt-btn" id="yt-btn">&#9654; youtube</button>
             <button class="action-btn google-btn" id="google-btn">&#8853; google</button>
           </div>
-          <div class="action-row">
-            <button class="action-btn deeper-btn" id="deeper-btn">&#8964; go deeper</button>
-            <button class="next-btn" id="next-btn" style="flex:1;margin:0">next topic &#8594;</button>
-          </div>
+          <button class="next-btn" id="next-btn">next topic &#8594;</button>
         </div>
       </div>
 
@@ -378,6 +389,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:-apple-system,Bl
 </div><!-- /layout -->
 
 <div id="toast"></div>
+<div id="bottom-nav"><div class="bottom-tabs"><button class="bottom-tab active" id="btab-discover">discover</button><button class="bottom-tab" id="btab-liked">liked</button><button class="bottom-tab" id="btab-history">history</button></div></div>
 
 <script>
 (function() {
@@ -508,7 +520,7 @@ function doSearch() {
 // ── STREAK ──
 function updateStreak() {
   var el = document.getElementById('search-bar-streak');
-  if (el) el.textContent = totalSeen > 0 ? totalSeen + ' topics' : '';
+  if (el) el.textContent = totalSeen > 0 ? totalSeen + ' topics researched' : '';
 }
 
 // ── WIRE UP BUTTONS ──
@@ -523,6 +535,9 @@ document.getElementById('next-btn').addEventListener('click', onNextClick);
 document.getElementById('tab-discover').addEventListener('click', function() { switchTab('discover',this); });
 document.getElementById('tab-liked').addEventListener('click', function() { switchTab('liked',this); });
 document.getElementById('tab-history').addEventListener('click', function() { switchTab('history',this); });
+document.getElementById('btab-discover').addEventListener('click', function() { switchTab('discover', document.getElementById('tab-discover')); syncBottomTabs('discover'); });
+document.getElementById('btab-liked').addEventListener('click', function() { switchTab('liked', document.getElementById('tab-liked')); syncBottomTabs('liked'); });
+document.getElementById('btab-history').addEventListener('click', function() { switchTab('history', document.getElementById('tab-history')); syncBottomTabs('history'); });
 
 // ── INIT ──
 buildCats();
@@ -683,19 +698,7 @@ function typewriteEl(el, text, speed, done) {
   step();
 }
 
-// ── GO DEEPER ──
-function goDeeper() {
-  if (!current) return;
-  var btn = document.getElementById('deeper-btn');
-  var dc = document.getElementById('deeper-card');
-  if (btn.classList.contains('loading')) return;
-  btn.classList.add('loading');
-  btn.textContent = '... loading';
-  dc.style.display = 'none'; dc.innerHTML = '';
-
-  fetch('/api/deeper', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+,
     body: JSON.stringify({
       title_en: current.title_en,
       title_zh: current.title_zh,
@@ -738,6 +741,14 @@ function showScreen(name) {
   });
   var target = document.getElementById(name + '-screen');
   if (target) target.classList.add('active');
+  var bn = document.getElementById('bottom-nav');
+  if (bn) bn.classList.toggle('visible', name === 'main');
+}
+
+function syncBottomTabs(tab) {
+  document.querySelectorAll('.bottom-tab').forEach(function(t){ t.classList.remove('active'); });
+  var btn = document.getElementById('btab-' + tab);
+  if (btn) btn.classList.add('active');
 }
 
 function setTransitionText(t) {
@@ -798,7 +809,8 @@ function openGoogle() {
 // ── TABS ──
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  syncBottomTabs(tab);
   document.getElementById('discover-view').style.display = tab==='discover'?'block':'none';
   document.getElementById('liked-view').style.display = tab==='liked'?'block':'none';
   document.getElementById('history-view').style.display = tab==='history'?'block':'none';
