@@ -20,13 +20,15 @@ function nextKey(keys) {
   return k;
 }
 
+// FREE-ONLY models — never use openrouter/auto (it can route to paid models like Claude Opus)
 const MODELS = [
-  "openrouter/auto",
   "meta-llama/llama-3.3-70b-instruct:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
   "google/gemma-3-27b-it:free",
   "google/gemma-3-12b-it:free",
-  "mistralai/mistral-7b-instruct:free"
-];
+  "mistralai/mistral-7b-instruct:free",
+  "qwen/qwen3-8b:free"
+].filter(m => !/claude|anthropic/i.test(m));
 
 const TOPIC_SYSTEM = [
   "You are a topic generator for a curiosity app called Never Bored.",
@@ -51,19 +53,6 @@ const TOPIC_SYSTEM = [
   "search: best YouTube search query for this topic (specific, include key names/terms)."
 ].join(" ");
 
-const DEEPER_SYSTEM = [
-  "You are writing a deep-dive for a curiosity app. The user already read a basic summary of this topic.",
-  "Your job is to go MUCH deeper with completely NEW information they have NOT seen yet.",
-  "Do NOT repeat or rephrase anything from the summary. Cover different angles entirely:",
-  "the backstory before the main event, key people and their motivations, what happened AFTER,",
-  "ripple effects, modern relevance, the most obscure detail experts know, controversies or debates.",
-  "Write in an engaging narrative style — like a great podcast, not a Wikipedia article.",
-  "Respond ONLY with a valid JSON object. No markdown, no backticks.",
-  "Fields: deep_en (8-10 sentences of fresh deep-dive in English),",
-  "deep_zh (same in Simplified Chinese), rabbit_hole (3 specific follow-up search queries",
-  "as an array of strings, each one a different angle to explore further)."
-].join(" ");
-
 async function callOpenRouter(messages, maxTokens, stream, res) {
   const keys = getApiKeys();
   if (!keys.length) {
@@ -75,6 +64,7 @@ async function callOpenRouter(messages, maxTokens, stream, res) {
   }
 
   for (const model of MODELS) {
+    if (/claude|anthropic/i.test(model)) { console.warn("Skipping paid model:", model); continue; }
     for (let ki = 0; ki < keys.length; ki++) {
       const apiKey = nextKey(keys);
       try {
@@ -139,11 +129,34 @@ async function callOpenRouter(messages, maxTokens, stream, res) {
 
 function parseJSON(raw) {
   const clean = raw.replace(/```json/g, "").replace(/```/g, "").trim();
-  try { return JSON.parse(clean); } catch (_) {
-    const match = clean.match(/[\[{][\s\S]*[\]}]/);
-    if (match) return JSON.parse(match[0]);
-    throw new Error("Could not parse JSON");
+  // 1. Try direct parse
+  try { return JSON.parse(clean); } catch (_) {}
+  // 2. Extract outermost [...] or {...} block
+  const match = clean.match(/[\[{][\s\S]*[\]}]/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch (_) {}
+    // 3. If it's a truncated array, salvage complete objects from it
+    if (match[0].startsWith("[")) {
+      try {
+        // Find all complete {...} objects inside the array
+        const objects = [];
+        let depth = 0, start = -1;
+        for (let i = 0; i < match[0].length; i++) {
+          const ch = match[0][i];
+          if (ch === "{") { if (depth === 0) start = i; depth++; }
+          else if (ch === "}") {
+            depth--;
+            if (depth === 0 && start !== -1) {
+              try { objects.push(JSON.parse(match[0].slice(start, i + 1))); } catch (_) {}
+              start = -1;
+            }
+          }
+        }
+        if (objects.length > 0) return objects;
+      } catch (_) {}
+    }
   }
+  throw new Error("Could not parse JSON");
 }
 
 app.get("/api/debug", (req, res) => {
@@ -190,30 +203,6 @@ app.post("/api/topics/stream", async (req, res) => {
     res.write("event: error\ndata: " + JSON.stringify({ error: "Parse error: " + err.message }) + "\n\n");
   }
   res.end();
-});
-
-app.post("/api/deeper", async (req, res) => {
-  const { title_en, title_zh, summary_en } = req.body;
-  if (!title_en) return res.status(400).json({ error: "Missing title" });
-
-  const userPrompt = "Topic: " + title_en + " (" + title_zh + ").\n" +
-    "The user already read this summary — do NOT repeat any of this:\n" +
-    summary_en + "\n\nNow give a completely fresh deep-dive.";
-
-  const messages = [
-    { role: "system", content: DEEPER_SYSTEM },
-    { role: "user", content: userPrompt }
-  ];
-
-  const raw = await callOpenRouter(messages, 4000, false, null);
-  if (!raw) return res.status(500).json({ error: "All models failed" });
-
-  try {
-    const result = parseJSON(raw);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: "Parse error: " + err.message });
-  }
 });
 
 app.get("/logo.png", (req, res) => res.sendFile(path.join(__dirname, "logo.png")));
