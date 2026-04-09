@@ -37,13 +37,14 @@ app.get("/api/debug", async (req, res) => {
 });
 
 app.post("/api/topics", async (req, res) => {
-  const { exclude = [] } = req.body;
+  const { exclude = [], count = 20 } = req.body;
+  const n = Math.min(Math.max(parseInt(count) || 20, 1), 20);
   const userPrompt = exclude.length
-    ? `Generate 20 fascinating topics. Do NOT include any of these: ${exclude.join(", ")}.`
-    : "Generate 20 fascinating topics from across all domains of human knowledge.";
+    ? `Generate exactly ${n} fascinating topics. Do NOT include any of these: ${exclude.join(", ")}.`
+    : `Generate exactly ${n} fascinating topics from across all domains of human knowledge.`;
 
   try {
-    console.log("Calling OpenRouter, key set:", !!process.env.OPENROUTER_API_KEY);
+    console.log(`Calling OpenRouter for ${n} topics, key set:`, !!process.env.OPENROUTER_API_KEY);
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -59,7 +60,7 @@ app.post("/api/topics", async (req, res) => {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt }
         ],
-        max_tokens: 8000,
+        max_tokens: n <= 5 ? 2500 : 8000,
         temperature: 1.0
       })
     });
@@ -212,8 +213,11 @@ let queue=[],seen=0,current=null,fetching=false,allSeen=[],disliked=[],liked=[],
 async function start(){
   document.getElementById('bored-screen').classList.remove('active');
   document.getElementById('main-screen').classList.add('active');
-  await fetchBatch();
+  showSkeleton();
+  setFetchStatus('fetching');
+  await fetchBatch(5);
   showNext();
+  fetchBatch(20);
 }
 
 function showSkeleton(){
@@ -233,11 +237,11 @@ function showError(msg){
 
 async function retryFetch(){
   document.getElementById('error-card').style.display='none';
-  await fetchBatch();
+  await fetchBatch(5);
   showNext();
 }
 
-async function fetchBatch(){
+async function fetchBatch(count){
   if(fetching)return;
   fetching=true;
   setFetchStatus('fetching');
@@ -245,7 +249,7 @@ async function fetchBatch(){
     const res=await fetch('/api/topics',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({exclude:allSeen.slice(0,80)})
+      body:JSON.stringify({exclude:allSeen.slice(0,80),count:count||20})
     });
     const data=await res.json();
     if(!res.ok){
@@ -273,7 +277,7 @@ async function showNext(){
   const nextBtn=document.getElementById('next-btn');
   if(nextBtn)nextBtn.disabled=true;
 
-  if(queue.length<=10&&!fetching)fetchBatch();
+  if(queue.length<=10&&!fetching)fetchBatch(20);
 
   if(queue.length===0){
     showSkeleton();
@@ -295,7 +299,7 @@ async function showNext(){
   history.unshift(next);
   renderTopic(next);
   if(nextBtn)nextBtn.disabled=false;
-  if(seen%10===0&&!fetching)fetchBatch();
+  if(seen%10===0&&!fetching)fetchBatch(20);
 }
 
 function renderTopic(t){
